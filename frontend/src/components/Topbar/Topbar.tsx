@@ -19,6 +19,7 @@ import {
 } from "@mui/icons-material";
 import { useThemeContext } from "../../theme/ThemeProvider";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -46,6 +47,7 @@ interface TopbarProps {
 
 const Topbar: React.FC<TopbarProps> = ({ onSidebarToggle }) => {
   const { mode, toggleTheme } = useThemeContext();
+  const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const navigate = useNavigate();
 
@@ -62,9 +64,36 @@ const Topbar: React.FC<TopbarProps> = ({ onSidebarToggle }) => {
     navigate("/profile");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     handleClose();
-    // Add logout logic here
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  // Get user initials
+  const getUserInitials = () => {
+    if (!user) return "U";
+    const firstInitial = user.firstName
+      ? user.firstName.charAt(0).toUpperCase()
+      : "";
+    const lastInitial = user.lastName
+      ? user.lastName.charAt(0).toUpperCase()
+      : "";
+    return (
+      `${firstInitial}${lastInitial}` || user.email.charAt(0).toUpperCase()
+    );
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (!user) return "User";
+    return (
+      `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+    );
   };
 
   return (
@@ -93,14 +122,14 @@ const Topbar: React.FC<TopbarProps> = ({ onSidebarToggle }) => {
               backgroundColor: "primary.main",
             }}
           >
-            JD
+            {getUserInitials()}
           </Avatar>
           <Box>
             <Typography variant="body2" fontWeight={500}>
-              John Doe
+              {getUserDisplayName()}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Administrator
+              {user?.role || "User"}
             </Typography>
           </Box>
           <ArrowDownIcon sx={{ fontSize: 20 }} />

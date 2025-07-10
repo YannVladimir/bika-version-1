@@ -55,12 +55,12 @@ const Layout: React.FC = () => {
     }
   };
 
-  // Calculate sidebar width
-  const sidebarWidth = sidebarOpen
-    ? sidebarCollapsed && window.innerWidth >= 900
-      ? 80
-      : 280
-    : 0;
+  // Calculate sidebar width (used for future responsive features)
+  // const sidebarWidth = sidebarOpen
+  //   ? sidebarCollapsed && window.innerWidth >= 900
+  //     ? 80
+  //     : 280
+  //   : 0;
 
   return (
     <LayoutRoot>

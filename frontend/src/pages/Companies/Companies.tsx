@@ -168,12 +168,9 @@ const Companies: React.FC = () => {
 
   const handleEditSave = () => {
     if (editingCompany) {
-      // Update the company in local state
-      const updated = companies.map((c) =>
-        c.id === editingCompany.id ? { ...editingCompany, ...companyForm } : c
-      );
-      // If using setCompanies, update here. If not, skip.
-      // setCompanies(updated);
+      // TODO: Implement actual company update when API integration is added
+      // For now, just close the dialog
+      console.log("Company update will be implemented in Phase 2");
     }
     setEditDialogOpen(false);
     setEditingCompany(null);

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.bika.company.service.DepartmentServiceTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 36.36 s -- in com.bika.company.service.DepartmentServiceTest

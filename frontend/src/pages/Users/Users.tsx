@@ -196,12 +196,9 @@ const Users: React.FC = () => {
 
   const handleEditSave = () => {
     if (editingUser) {
-      // Update the user in local state
-      const updated = users.map((u) =>
-        u.id === editingUser.id ? { ...editingUser, ...userForm } : u
-      );
-      // If using setUsers, update here. If not, skip.
-      // setUsers(updated);
+      // TODO: Implement actual user update when API integration is added
+      // For now, just close the dialog
+      console.log("User update will be implemented in Phase 2");
     }
     setEditDialogOpen(false);
     setEditingUser(null);

@@ -9,9 +9,13 @@ import {
   styled,
   IconButton,
   InputAdornment,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { tokens } from "../../theme/theme";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const LoginRoot = styled(Box)({
   minHeight: "100vh",
@@ -59,10 +63,32 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      await login(email, password);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || "Login failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,6 +105,12 @@ const Login: React.FC = () => {
         </Box>
 
         <Form onSubmit={handleSubmit}>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
           <TextField
             fullWidth
             label="Email address"
@@ -87,6 +119,7 @@ const Login: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={isLoading}
           />
 
           <TextField
@@ -97,12 +130,14 @@ const Login: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={isLoading}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
                     onClick={() => setShowPassword(!showPassword)}
                     edge="end"
+                    disabled={isLoading}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -128,6 +163,7 @@ const Login: React.FC = () => {
             variant="contained"
             size="large"
             fullWidth
+            disabled={isLoading}
             sx={{
               height: 48,
               background: `linear-gradient(90deg, ${tokens.primary.main}, ${tokens.secondary.main})`,
@@ -136,7 +172,7 @@ const Login: React.FC = () => {
               },
             }}
           >
-            Sign in
+            {isLoading ? <CircularProgress size={24} /> : "Sign in"}
           </Button>
         </Form>
       </LoginCard>

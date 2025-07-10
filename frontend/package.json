@@ -8,6 +8,7 @@
     "@mui/icons-material": "^5.17.1",
     "@mui/lab": "^5.0.0-alpha.125",
     "@mui/material": "^5.17.1",
+    "@tanstack/react-query": "^5.81.5",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -15,6 +16,7 @@
     "@types/node": "^16.18.27",
     "@types/react": "^18.2.6",
     "@types/react-dom": "^18.2.4",
+    "axios": "^1.10.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.1",
@@ -47,7 +49,7 @@
     ]
   },
   "devDependencies": {
-    "html-webpack-plugin": "^5.5.0",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "html-webpack-plugin": "^5.5.0"
   }
 }

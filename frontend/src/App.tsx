@@ -11,15 +11,31 @@ import Reports from "./pages/Reports/ReportsPage";
 import Drive from "./pages/Drive/Drive";
 import Settings from "./pages/Settings/Settings";
 import Profile from "./pages/Profile/Profile";
+import Login from "./pages/Login/Login";
 import Layout from "./components/Layout/Layout";
 import RetrievalPage from "./pages/Retrieval/RetrievalPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
+import { QueryProvider } from "./hooks/useApiQuery";
 
 const router = createBrowserRouter(
   [
     {
+      path: "/login",
+      element: <Login />,
+    },
+    {
       path: "/",
-      element: <Layout />,
+      element: (
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      ),
       children: [
+        {
+          path: "",
+          element: <Dashboard />,
+        },
         {
           path: "dashboard",
           element: <Dashboard />,
@@ -72,10 +88,14 @@ const router = createBrowserRouter(
 
 function App() {
   return (
-    <ThemeProvider>
-      <CssBaseline />
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <QueryProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <CssBaseline />
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryProvider>
   );
 }
 
