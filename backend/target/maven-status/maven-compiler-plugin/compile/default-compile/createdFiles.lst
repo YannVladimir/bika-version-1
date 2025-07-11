@@ -60,6 +60,7 @@ com\bika\task\entity\Task$TaskPriority.class
 com\bika\BikaApplication.class
 com\bika\company\service\CompanyServiceImpl.class
 com\bika\user\dto\UserDTO.class
+com\bika\util\PasswordHashGenerator.class
 com\bika\security\dto\RegisterRequest.class
 com\bika\task\repository\TaskRepository.class
 com\bika\reports\dto\UserStatsDTO.class

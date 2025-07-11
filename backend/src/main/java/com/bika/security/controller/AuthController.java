@@ -14,13 +14,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Authentication management APIs")
+@Slf4j
 public class AuthController {
 
     private final AuthenticationService authenticationService;
@@ -51,6 +53,12 @@ public class AuthController {
         return ResponseEntity.ok(authenticationService.register(request));
     }
 
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        log.info("AuthController: Test endpoint called");
+        return ResponseEntity.ok("AuthController is working!");
+    }
+
     @Operation(
         summary = "Authenticate a user",
         description = "Authenticate a user with email and password"
@@ -69,7 +77,18 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authenticationService.login(request));
+        log.info("AuthController: Login request received for email: {}", request.getEmail());
+        log.info("AuthController: Request body - email: {}, password length: {}", request.getEmail(), request.getPassword() != null ? request.getPassword().length() : 0);
+        
+        try {
+            log.info("AuthController: Calling AuthenticationService.login()");
+            LoginResponse response = authenticationService.login(request);
+            log.info("AuthController: Login successful for email: {}", request.getEmail());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("AuthController: Error during login for email: {}", request.getEmail(), e);
+            throw e;
+        }
     }
 
     @PostMapping("/logout")

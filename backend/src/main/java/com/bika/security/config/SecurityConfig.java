@@ -3,6 +3,7 @@ package com.bika.security.config;
 import com.bika.security.filter.JwtAuthenticationFilter;
 import com.bika.security.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +28,7 @@ import java.util.Arrays;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -34,6 +36,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("SecurityConfig: Configuring security filter chain");
+        log.info("SecurityConfig: Allowing paths: /auth/**, /api-docs/**, /swagger-ui/**, /v3/api-docs/**");
+        
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -47,6 +52,7 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
+        log.info("SecurityConfig: Security filter chain configured successfully");
         return http.build();
     }
 

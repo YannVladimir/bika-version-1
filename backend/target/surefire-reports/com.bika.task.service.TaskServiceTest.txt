@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.bika.task.service.TaskServiceTest
--------------------------------------------------------------------------------
-Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.716 s -- in com.bika.task.service.TaskServiceTest

@@ -9,6 +9,7 @@ ProjectControllerIntegrationTest.class
 com\bika\user\service\UserServiceTest.class
 com\bika\security\controller\AuthControllerIntegrationTest.class
 com\bika\user\controller\UserControllerIntegrationTest.class
+com\bika\util\PasswordHashGeneratorTest.class
 com\bika\project\controller\ProjectControllerIntegrationTest.class
 com\bika\company\service\CompanyServiceTest.class
 com\bika\config\TestAuditorAwareConfig.class

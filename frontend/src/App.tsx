@@ -15,8 +15,10 @@ import Login from "./pages/Login/Login";
 import Layout from "./components/Layout/Layout";
 import RetrievalPage from "./pages/Retrieval/RetrievalPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RoleBasedRoute from "./components/RoleBasedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { QueryProvider } from "./hooks/useApiQuery";
+import { USER_ROLES } from "./constants/roles";
 
 const router = createBrowserRouter(
   [
@@ -42,35 +44,67 @@ const router = createBrowserRouter(
         },
         {
           path: "companies",
-          element: <Companies />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.SUPER_ADMIN]}>
+              <Companies />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "users",
-          element: <Users />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.COMPANY_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER]}>
+              <Users />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "document-types",
-          element: <DocumentTypes />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.COMPANY_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER]}>
+              <DocumentTypes />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "archival",
-          element: <ArchivalPage />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.COMPANY_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER]}>
+              <ArchivalPage />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "retrieval",
-          element: <RetrievalPage />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.COMPANY_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER]}>
+              <RetrievalPage />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "reports",
-          element: <Reports />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.COMPANY_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER]}>
+              <Reports />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "drive",
-          element: <Drive />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.COMPANY_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER]}>
+              <Drive />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "settings",
-          element: <Settings />,
+          element: (
+            <RoleBasedRoute allowedRoles={[USER_ROLES.SUPER_ADMIN, USER_ROLES.COMPANY_ADMIN, USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.USER]}>
+              <Settings />
+            </RoleBasedRoute>
+          ),
         },
         {
           path: "profile",

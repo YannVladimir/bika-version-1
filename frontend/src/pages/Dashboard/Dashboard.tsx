@@ -10,14 +10,25 @@ import {
   ListItemIcon,
   Avatar,
   styled,
+  Grid,
+  Chip,
 } from "@mui/material";
 import {
   Description as DocumentIcon,
   CloudUpload as UploadIcon,
   Storage as StorageIcon,
   Group as UsersIcon,
+  Security as SecurityIcon,
+  Business as CompanyIcon,
+  Assessment as ReportsIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { tokens } from "../../theme/theme";
+import { useAuth } from "../../context/AuthContext";
+import { usePermissions } from "../../hooks/usePermissions";
+import UserRoleDisplay from "../../components/UserRoleDisplay";
+import RoleSwitcher from "../../components/RoleSwitcher";
+import RoleTest from "../../components/RoleTest";
 
 const StatsCard = styled(Card)(({ theme }) => ({
   height: "100%",
@@ -54,6 +65,9 @@ const GradientBox = styled(Box)({
 });
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+  const permissions = usePermissions();
+
   const stats = [
     {
       title: "Total Documents",
@@ -104,6 +118,45 @@ const Dashboard: React.FC = () => {
     },
   ];
 
+  const userPermissions = [
+    {
+      name: "Manage Companies",
+      description: "Add, edit, and delete client companies",
+      hasPermission: permissions.canManageCompanies(),
+      icon: <CompanyIcon />,
+    },
+    {
+      name: "Manage Users",
+      description: "Add, edit, and delete users within your scope",
+      hasPermission: permissions.canManageUsers(),
+      icon: <UsersIcon />,
+    },
+    {
+      name: "Document Types",
+      description: "Define document types and metadata",
+      hasPermission: permissions.canManageDocumentTypes(),
+      icon: <DocumentIcon />,
+    },
+    {
+      name: "Archival & Retrieval",
+      description: "Archive and retrieve documents",
+      hasPermission: permissions.canAccessArchival(),
+      icon: <StorageIcon />,
+    },
+    {
+      name: "Reports",
+      description: "Generate and view system reports",
+      hasPermission: permissions.canAccessReports(),
+      icon: <ReportsIcon />,
+    },
+    {
+      name: "Settings",
+      description: "Access system configuration",
+      hasPermission: permissions.canAccessSettings(),
+      icon: <SettingsIcon />,
+    },
+  ];
+
   return (
     <Box
       width="100%"
@@ -112,12 +165,22 @@ const Dashboard: React.FC = () => {
       flexDirection="column"
       alignItems="flex-start"
     >
-      <Typography variant="h4" fontWeight={600} mb={4} align="left">
-        Dashboard
-      </Typography>
-      <Box display="flex" flexWrap="wrap" gap={3} mb={3} width="100%">
+      <Box display="flex" justifyContent="space-between" alignItems="center" width="100%" mb={4}>
+        <Typography variant="h4" fontWeight={600}>
+          Dashboard
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <UserRoleDisplay variant="detailed" showDescription={true} />
+          <RoleSwitcher />
+        </Box>
+      </Box>
+
+      {/* Temporary Role Test Component for Debugging */}
+      <RoleTest />
+
+      <Grid container spacing={3} mb={3}>
         {stats.map((stat) => (
-          <Box key={stat.title} flex="1 1 220px" minWidth={220} maxWidth={340}>
+          <Grid item xs={12} sm={6} md={3} key={stat.title}>
             <StatsCard>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
@@ -127,51 +190,110 @@ const Dashboard: React.FC = () => {
                 <Typography color="text.secondary">{stat.title}</Typography>
               </CardContent>
             </StatsCard>
-          </Box>
+          </Grid>
         ))}
-      </Box>
-      <ActivityCard sx={{ width: "100%" }}>
-        <CardContent>
-          <Typography variant="h6" fontWeight={500} mb={2} align="left">
-            Recent Activities
-          </Typography>
-          <List>
-            {recentActivities.map((activity, index) => (
-              <ListItem
-                key={index}
-                sx={{
-                  borderBottom:
-                    index < recentActivities.length - 1
-                      ? "1px solid rgba(0, 0, 0, 0.08)"
-                      : "none",
-                  py: 2,
-                }}
-              >
-                <ListItemIcon>
-                  <Avatar
+      </Grid>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={6}>
+          <ActivityCard>
+            <CardContent>
+              <Typography variant="h6" fontWeight={500} mb={2}>
+                Recent Activities
+              </Typography>
+              <List>
+                {recentActivities.map((activity, index) => (
+                  <ListItem
+                    key={index}
                     sx={{
-                      width: 40,
-                      height: 40,
-                      bgcolor: `${tokens.primary.main}`,
+                      borderBottom:
+                        index < recentActivities.length - 1
+                          ? "1px solid rgba(0, 0, 0, 0.08)"
+                          : "none",
+                      py: 2,
                     }}
                   >
-                    {activity.user.charAt(0)}
-                  </Avatar>
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography variant="body1">
-                      <strong>{activity.user}</strong> {activity.action}{" "}
-                      <strong>{activity.document}</strong>
-                    </Typography>
-                  }
-                  secondary={activity.time}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </CardContent>
-      </ActivityCard>
+                    <ListItemIcon>
+                      <Avatar
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          bgcolor: `${tokens.primary.main}`,
+                        }}
+                      >
+                        {activity.user.charAt(0)}
+                      </Avatar>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography variant="body1">
+                          <strong>{activity.user}</strong> {activity.action}{" "}
+                          <strong>{activity.document}</strong>
+                        </Typography>
+                      }
+                      secondary={activity.time}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </ActivityCard>
+        </Grid>
+
+        <Grid item xs={12} lg={6}>
+          <ActivityCard>
+            <CardContent>
+              <Typography variant="h6" fontWeight={500} mb={2}>
+                Your Permissions
+              </Typography>
+              <List>
+                {userPermissions.map((permission, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      borderBottom:
+                        index < userPermissions.length - 1
+                          ? "1px solid rgba(0, 0, 0, 0.08)"
+                          : "none",
+                      py: 2,
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Avatar
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          bgcolor: permission.hasPermission 
+                            ? tokens.primary.main 
+                            : 'grey.300',
+                        }}
+                      >
+                        {permission.icon}
+                      </Avatar>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Typography variant="body1" fontWeight={500}>
+                            {permission.name}
+                          </Typography>
+                          <Chip
+                            label={permission.hasPermission ? "Allowed" : "Denied"}
+                            size="small"
+                            color={permission.hasPermission ? "success" : "default"}
+                            variant={permission.hasPermission ? "filled" : "outlined"}
+                          />
+                        </Box>
+                      }
+                      secondary={permission.description}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </ActivityCard>
+        </Grid>
+      </Grid>
     </Box>
   );
 };

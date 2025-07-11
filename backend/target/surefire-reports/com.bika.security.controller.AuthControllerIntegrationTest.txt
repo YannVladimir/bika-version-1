@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.bika.security.controller.AuthControllerIntegrationTest
--------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.671 s -- in com.bika.security.controller.AuthControllerIntegrationTest

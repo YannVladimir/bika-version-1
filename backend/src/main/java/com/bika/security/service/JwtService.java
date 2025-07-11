@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtService {
     
     @Value("${jwt.secret}")
@@ -37,13 +39,25 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return Jwts.builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+        log.debug("JwtService: Generating token for user: {}", userDetails.getUsername());
+        log.debug("JwtService: Using secret key length: {}", secretKey.length());
+        log.debug("JwtService: JWT expiration: {}", jwtExpiration);
+        
+        try {
+            String token = Jwts.builder()
+                    .setClaims(extraClaims)
+                    .setSubject(userDetails.getUsername())
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                    .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                    .compact();
+            
+            log.debug("JwtService: Token generated successfully");
+            return token;
+        } catch (Exception e) {
+            log.error("JwtService: Error generating token", e);
+            throw e;
+        }
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
@@ -68,6 +82,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
+        log.debug("JwtService: Creating signing key from secret");
         byte[] keyBytes = secretKey.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }

@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.bika.user.controller.UserControllerIntegrationTest
--------------------------------------------------------------------------------
-Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.790 s -- in com.bika.user.controller.UserControllerIntegrationTest

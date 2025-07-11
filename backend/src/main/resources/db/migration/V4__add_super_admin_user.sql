@@ -17,7 +17,7 @@ INSERT INTO users (
 ) VALUES (
     'superadmin',
     'superadmin@bika.com',
-    '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', -- superadmin123
+    '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', -- superadmin123
     'Super',
     'Administrator',
     'SUPER_ADMIN',
