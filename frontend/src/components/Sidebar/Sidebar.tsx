@@ -10,11 +10,18 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
+import {
+  Dashboard as DashboardIcon,
+  Business as CompanyIcon,
+  People as UsersIcon,
+  Description as DocumentIcon,
+  Archive as ArchiveIcon,
+  Assessment as ReportsIcon,
+  Storage as DriveIcon,
+  Settings as SettingsIcon,
+} from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { tokens } from "../../theme/theme";
-import { useAuth } from "../../context/AuthContext";
-import { getMenuItemsForRole, UserRole } from "../../constants/roles";
-import { getIconComponent } from "../../utils/iconMapper";
 
 const DRAWER_WIDTH = 280;
 
@@ -54,6 +61,18 @@ const Logo = styled(Box)({
   },
 });
 
+const menuItems = [
+  { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+  { text: "Companies", icon: <CompanyIcon />, path: "/companies" },
+  { text: "Users & Roles", icon: <UsersIcon />, path: "/users" },
+  { text: "Document Types", icon: <DocumentIcon />, path: "/document-types" },
+  { text: "Archival", icon: <ArchiveIcon />, path: "/archival" },
+  { text: "Retrieval", icon: <ArchiveIcon />, path: "/retrieval" },
+  { text: "Reports", icon: <ReportsIcon />, path: "/reports" },
+  { text: "Drive", icon: <DriveIcon />, path: "/drive" },
+  { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
+];
+
 interface SidebarProps {
   open: boolean;
   collapsed: boolean;
@@ -79,21 +98,7 @@ const SidebarBox = styled(Box)<{ $collapsed?: boolean }>(
 const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
   const isMobile = window.innerWidth < 900;
-
-  // Get menu items based on user role
-  const userRole = (user?.role as UserRole) || 'USER';
-  const menuItems = getMenuItemsForRole(userRole);
-
-  // Debug logging
-  console.log('Sidebar Debug:', {
-    user,
-    userRole,
-    menuItemsCount: menuItems.length,
-    menuItems: menuItems.map(item => item.text),
-    hasCompanies: menuItems.some(item => item.text === 'Companies')
-  });
 
   if (isMobile) {
     // Mobile: use Drawer
@@ -114,37 +119,34 @@ const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
           <img src="/logo.png" alt="Bika Logo" />
         </Logo>
         <List>
-          {menuItems.map((item) => {
-            const IconComponent = getIconComponent(item.icon);
-            return (
-              <StyledListItem
-                key={item.text}
-                active={location.pathname === item.path ? 1 : 0}
-                onClick={() => {
-                  navigate(item.path);
-                  onClose();
+          {menuItems.map((item) => (
+            <StyledListItem
+              key={item.text}
+              active={location.pathname === item.path ? 1 : 0}
+              onClick={() => {
+                navigate(item.path);
+                onClose();
+              }}
+              sx={{ justifyContent: "flex-start", padding: "8px 16px" }}
+            >
+              <ListItemIcon
+                sx={{
+                  color: "inherit",
+                  minWidth: 40,
+                  justifyContent: "center",
                 }}
-                sx={{ justifyContent: "flex-start", padding: "8px 16px" }}
               >
-                <ListItemIcon
-                  sx={{
-                    color: "inherit",
-                    minWidth: 40,
-                    justifyContent: "center",
-                  }}
-                >
-                  <IconComponent />
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography variant="body1" fontWeight={500}>
-                      {item.text}
-                    </Typography>
-                  }
-                />
-              </StyledListItem>
-            );
-          })}
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Typography variant="body1" fontWeight={500}>
+                    {item.text}
+                  </Typography>
+                }
+              />
+            </StyledListItem>
+          ))}
         </List>
       </StyledDrawer>
     );
@@ -162,31 +164,18 @@ const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
         {!collapsed ? <img src="/logo.png" alt="Bika Logo" /> : null}
       </Logo>
       <List>
-        {menuItems.map((item) => {
-          const IconComponent = getIconComponent(item.icon);
-          return (
-            <StyledListItem
-              key={item.text}
-              active={location.pathname === item.path ? 1 : 0}
-              onClick={() => navigate(item.path)}
-              sx={{
-                justifyContent: collapsed ? "center" : "flex-start",
-                padding: collapsed ? "8px 0" : "8px 16px",
-              }}
-            >
-              {collapsed ? (
-                <Tooltip title={item.text} placement="right">
-                  <ListItemIcon
-                    sx={{
-                      color: "inherit",
-                      minWidth: 40,
-                      justifyContent: "center",
-                    }}
-                  >
-                    <IconComponent />
-                  </ListItemIcon>
-                </Tooltip>
-              ) : (
+        {menuItems.map((item) => (
+          <StyledListItem
+            key={item.text}
+            active={location.pathname === item.path ? 1 : 0}
+            onClick={() => navigate(item.path)}
+            sx={{
+              justifyContent: collapsed ? "center" : "flex-start",
+              padding: collapsed ? "8px 0" : "8px 16px",
+            }}
+          >
+            {collapsed ? (
+              <Tooltip title={item.text} placement="right">
                 <ListItemIcon
                   sx={{
                     color: "inherit",
@@ -194,21 +183,31 @@ const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
                     justifyContent: "center",
                   }}
                 >
-                  <IconComponent />
+                  {item.icon}
                 </ListItemIcon>
-              )}
-              {!collapsed ? (
-                <ListItemText
-                  primary={
-                    <Typography variant="body1" fontWeight={500}>
-                      {item.text}
-                    </Typography>
-                  }
-                />
-              ) : null}
-            </StyledListItem>
-          );
-        })}
+              </Tooltip>
+            ) : (
+              <ListItemIcon
+                sx={{
+                  color: "inherit",
+                  minWidth: 40,
+                  justifyContent: "center",
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+            )}
+            {!collapsed ? (
+              <ListItemText
+                primary={
+                  <Typography variant="body1" fontWeight={500}>
+                    {item.text}
+                  </Typography>
+                }
+              />
+            ) : null}
+          </StyledListItem>
+        ))}
       </List>
     </SidebarBox>
   );

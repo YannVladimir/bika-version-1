@@ -88,6 +88,7 @@ com\bika\company\service\DepartmentService.class
 com\bika\security\dto\AuthenticationResponse$AuthenticationResponseBuilder.class
 com\bika\document\repository\DocumentTypeRepository.class
 com\bika\project\entity\Project$ProjectBuilder.class
+com\bika\util\PasswordTest.class
 com\bika\common\exception\DuplicateResourceException.class
 com\bika\reports\dto\DocumentStatsDTO$DocumentStatsDTOBuilder.class
 com\bika\security\dto\LoginResponse$LoginResponseBuilder.class
@@ -106,6 +107,7 @@ com\bika\security\dto\RegisterRequest$RegisterRequestBuilder.class
 com\bika\document\dto\CreateDocumentRequest.class
 com\bika\document\entity\DocumentType$DocumentTypeBuilderImpl.class
 com\bika\document\controller\FolderController.class
+com\bika\util\FindPassword.class
 com\bika\project\dto\ProjectDTO$ProjectDTOBuilder.class
 com\bika\document\controller\DocumentController.class
 com\bika\common\exception\BikaException.class

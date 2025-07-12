@@ -20,7 +20,6 @@ import {
 import { useThemeContext } from "../../theme/ThemeProvider";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import UserRoleDisplay from "../UserRoleDisplay";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -115,9 +114,6 @@ const Topbar: React.FC<TopbarProps> = ({ onSidebarToggle }) => {
         <IconButton color="inherit" sx={{ mr: 2 }}>
           <NotificationsIcon />
         </IconButton>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 2 }}>
-          <UserRoleDisplay variant="compact" showDescription={true} />
-        </Box>
         <UserProfile onClick={handleProfileClick}>
           <Avatar
             sx={{
@@ -133,7 +129,7 @@ const Topbar: React.FC<TopbarProps> = ({ onSidebarToggle }) => {
               {getUserDisplayName()}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {user?.email}
+              {user?.role || "User"}
             </Typography>
           </Box>
           <ArrowDownIcon sx={{ fontSize: 20 }} />

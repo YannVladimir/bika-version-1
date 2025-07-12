@@ -12,9 +12,9 @@ class AuthService {
       const mockUser: User = {
         id: 1,
         email: credentials.email,
-        firstName: 'Super',
-        lastName: 'Admin',
-        role: 'SUPER_ADMIN', // Changed to SUPER_ADMIN for testing
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'COMPANY_ADMIN',
         companyId: 1,
       };
       localStorage.setItem('user', JSON.stringify(mockUser));

@@ -16,6 +16,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\service\UserDetailsServiceImpl.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\AuthenticationRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\service\UserService.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\FindPassword.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\service\CompanyService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\PasswordHashGenerator.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\entity\UserRole.java
@@ -69,6 +70,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\repository\UserRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\dto\UserStatsDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\DocumentDTO.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\PasswordTest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\CreateDocumentRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\repository\ProjectRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\AuditLog.java
