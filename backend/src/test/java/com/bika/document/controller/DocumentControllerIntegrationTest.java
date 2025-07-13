@@ -168,7 +168,7 @@ public class DocumentControllerIntegrationTest {
                 .password(passwordEncoder.encode("password123"))
                 .firstName("Admin")
                 .lastName("User")
-                .role(UserRole.ADMIN)
+                .role(UserRole.COMPANY_ADMIN)
                 .company(testCompany)
                 .department(testDepartment)
                 .active(true)

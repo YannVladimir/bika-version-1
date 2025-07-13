@@ -145,7 +145,7 @@ public class TaskControllerIntegrationTest {
                 .password(passwordEncoder.encode("password123"))
                 .firstName("Test")
                 .lastName("Admin")
-                .role(UserRole.ADMIN)
+                .role(UserRole.COMPANY_ADMIN)
                 .company(testCompany)
                 .department(testDepartment)
                 .active(true)

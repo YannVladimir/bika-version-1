@@ -96,6 +96,23 @@ const Topbar: React.FC<TopbarProps> = ({ onSidebarToggle }) => {
     );
   };
 
+  // Get user role display name
+  const getUserRoleDisplayName = () => {
+    if (!user) return "User";
+    switch (user.role) {
+      case 'SUPER_ADMIN':
+        return 'Super Admin';
+      case 'COMPANY_ADMIN':
+        return 'Admin';
+      case 'MANAGER':
+        return 'Manager';
+      case 'USER':
+        return 'User';
+      default:
+        return user.role;
+    }
+  };
+
   return (
     <StyledAppBar position="fixed">
       <Toolbar>
@@ -129,7 +146,7 @@ const Topbar: React.FC<TopbarProps> = ({ onSidebarToggle }) => {
               {getUserDisplayName()}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {user?.role || "User"}
+              {getUserRoleDisplayName()}
             </Typography>
           </Box>
           <ArrowDownIcon sx={{ fontSize: 20 }} />

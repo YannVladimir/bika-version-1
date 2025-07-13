@@ -95,7 +95,7 @@ class UserServiceTest {
                 .password("password")
                 .firstName("Admin")
                 .lastName("User")
-                .role(UserRole.ADMIN)
+                .role(UserRole.COMPANY_ADMIN)
                 .company(testCompany)
                 .department(testDepartment)
                 .active(true)

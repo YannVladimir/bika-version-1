@@ -1,23 +1,25 @@
 import apiClient from './client';
-import { LoginRequest, LoginResponse, User } from './types';
+import { LoginRequest, LoginResponse, RegisterResponse, User } from './types';
 
 class AuthService {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
     
-    // Store token
+    // Store token and user data
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      // For now, create a mock user until we have a user info endpoint
-      const mockUser: User = {
-        id: 1,
-        email: credentials.email,
-        firstName: 'Admin',
-        lastName: 'User',
-        role: 'COMPANY_ADMIN',
-        companyId: 1,
+      
+      // Create user object from login response
+      const user: User = {
+        id: response.data.id,
+        email: response.data.email,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        role: response.data.role,
+        companyId: response.data.companyId,
+        departmentId: response.data.departmentId,
       };
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      localStorage.setItem('user', JSON.stringify(user));
     }
     
     return response.data;
@@ -29,20 +31,23 @@ class AuthService {
     firstName: string;
     lastName: string;
     companyId: number;
-  }): Promise<LoginResponse> {
-    const response = await apiClient.post<LoginResponse>('/auth/register', userData);
+  }): Promise<RegisterResponse> {
+    const response = await apiClient.post<RegisterResponse>('/auth/register', userData);
     
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      const mockUser: User = {
-        id: 1,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        role: 'USER',
-        companyId: userData.companyId,
+      
+      // Create user object from register response
+      const user: User = {
+        id: response.data.id,
+        email: response.data.email,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        role: response.data.role,
+        companyId: response.data.companyId,
+        departmentId: response.data.departmentId,
       };
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      localStorage.setItem('user', JSON.stringify(user));
     }
     
     return response.data;
@@ -68,6 +73,14 @@ class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  // Method to fetch fresh user profile from API
+  async fetchUserProfile(): Promise<User> {
+    const response = await apiClient.get<User>('/users/profile');
+    const user = response.data;
+    localStorage.setItem('user', JSON.stringify(user));
+    return user;
   }
 }
 

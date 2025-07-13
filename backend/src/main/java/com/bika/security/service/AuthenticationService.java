@@ -44,13 +44,24 @@ public class AuthenticationService {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
                 .role(request.getRole())
                 .build();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        String token = jwtService.generateToken(user);
-        return new RegisterResponse(token);
+        String token = jwtService.generateToken(savedUser);
+        return RegisterResponse.builder()
+                .token(token)
+                .email(savedUser.getEmail())
+                .role(savedUser.getRole().name())
+                .id(savedUser.getId())
+                .firstName(savedUser.getFirstName())
+                .lastName(savedUser.getLastName())
+                .companyId(savedUser.getCompany() != null ? savedUser.getCompany().getId() : null)
+                .departmentId(savedUser.getDepartment() != null ? savedUser.getDepartment().getId() : null)
+                .build();
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -71,26 +82,16 @@ public class AuthenticationService {
                 .token(token)
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .companyId(user.getCompany() != null ? user.getCompany().getId() : null)
+                .departmentId(user.getDepartment() != null ? user.getDepartment().getId() : null)
                 .build();
             
         } catch (Exception e) {
-            log.error("AuthenticationService: Error during login process", e);
-            
-            // Add debug logging to see what's happening
-            try {
-                User user = userRepository.findByEmail(request.getEmail()).orElse(null);
-                if (user != null) {
-                    log.debug("AuthenticationService: Found user in database - stored hash: {}", user.getPassword());
-                    log.debug("AuthenticationService: Input password length: {}", request.getPassword().length());
-                    log.debug("AuthenticationService: Input password: {}", request.getPassword());
-                } else {
-                    log.debug("AuthenticationService: No user found with email: {}", request.getEmail());
-                }
-            } catch (Exception ex) {
-                log.debug("AuthenticationService: Error checking user details: {}", ex.getMessage());
-            }
-            
-            throw e;
+            log.error("AuthenticationService: Error during login for email: {}", request.getEmail(), e);
+            throw new RuntimeException("Authentication failed", e);
         }
     }
 

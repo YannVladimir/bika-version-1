@@ -110,7 +110,7 @@ public class ProjectControllerIntegrationTest {
                 .password(passwordEncoder.encode("password123"))
                 .firstName("Test")
                 .lastName("User")
-                .role(UserRole.ADMIN)
+                .role(UserRole.COMPANY_ADMIN)
                 .company(testCompany)
                 .department(testDepartment)
                 .active(true)

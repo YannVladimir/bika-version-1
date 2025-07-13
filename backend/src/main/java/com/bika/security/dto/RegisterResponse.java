@@ -11,4 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RegisterResponse {
     private String token;
+    private String email;
+    private String role;
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private Long companyId;
+    private Long departmentId;
 } 

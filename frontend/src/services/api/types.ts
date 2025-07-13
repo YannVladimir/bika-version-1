@@ -31,6 +31,24 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  email: string;
+  role: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  companyId: number;
+  departmentId?: number;
+}
+
+export interface RegisterResponse {
+  token: string;
+  email: string;
+  role: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  companyId: number;
+  departmentId?: number;
 }
 
 export interface User {

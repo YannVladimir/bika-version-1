@@ -56,7 +56,7 @@ public class ProjectControllerIntegrationTest {
                 .firstName("Test")
                 .lastName("User")
                 .active(true)
-                .role(UserRole.ADMIN)
+                .role(UserRole.COMPANY_ADMIN)
                 .company(company)
                 .department(department)
                 .createdBy("testuser")
