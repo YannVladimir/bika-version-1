@@ -34,35 +34,43 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
   "& .MuiDrawer-paper": {
     width: DRAWER_WIDTH,
     boxSizing: "border-box",
-    background: `linear-gradient(180deg, 
-      ${tokens.primary.main} 0%, 
-      ${tokens.primary.light} 50%, 
-      ${tokens.secondary.main} 100%)`,
-    color: theme.palette.common.white,
-    borderRight: "none",
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    borderRight: `1px solid ${theme.palette.divider}`,
   },
 }));
 
-const StyledListItem = styled(ListItem)<{ active?: number }>(({ active }) => ({
+const StyledListItem = styled(ListItem)<{ active?: number }>(({ theme, active }) => ({
   margin: "8px 16px",
   borderRadius: "12px",
-  backgroundColor: active ? "rgba(255, 255, 255, 0.1)" : "transparent",
+  background: active ? 
+    `linear-gradient(135deg, ${tokens.primary.main} 0%, ${tokens.primary.light} 50%, ${tokens.secondary.main} 100%)` : 
+    "transparent",
+  color: active ? theme.palette.common.white : theme.palette.text.primary,
   "&:hover": {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    background: `linear-gradient(135deg, ${tokens.primary.main} 0%, ${tokens.primary.light} 50%, ${tokens.secondary.main} 100%)`,
+    color: theme.palette.common.white,
+    "& .MuiListItemIcon-root": {
+      color: theme.palette.common.white,
+    },
   },
   cursor: "pointer",
+  "& .MuiListItemIcon-root": {
+    color: active ? theme.palette.common.white : theme.palette.text.primary,
+  },
 }));
 
-const Logo = styled(Box)({
+const Logo = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   padding: "24px 16px",
+  borderBottom: `1px solid ${theme.palette.divider}`,
   "& img": {
     width: "120px",
     height: "auto",
   },
-});
+}));
 
 // Define all possible menu items with their role permissions
 const allMenuItems: MenuItem[] = [
@@ -134,9 +142,9 @@ const SidebarBox = styled(Box)<{ $collapsed?: boolean }>(
     minWidth: $collapsed ? 80 : 280,
     maxWidth: $collapsed ? 80 : 280,
     height: "100vh",
-    background: `linear-gradient(180deg, ${tokens.primary.main} 0%, ${tokens.primary.light} 50%, ${tokens.secondary.main} 100%)`,
-    color: theme.palette.common.white,
-    borderRight: "none",
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    borderRight: `1px solid ${theme.palette.divider}`,
     display: "flex",
     flexDirection: "column",
     transition: "width 0.3s",
@@ -184,7 +192,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
             >
               <ListItemIcon
                 sx={{
-                  color: "inherit",
                   minWidth: 40,
                   justifyContent: "center",
                 }}
@@ -231,7 +238,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
               <Tooltip title={item.text} placement="right">
                 <ListItemIcon
                   sx={{
-                    color: "inherit",
                     minWidth: 40,
                     justifyContent: "center",
                   }}
@@ -242,7 +248,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
             ) : (
               <ListItemIcon
                 sx={{
-                  color: "inherit",
                   minWidth: 40,
                   justifyContent: "center",
                 }}
