@@ -19,9 +19,12 @@ import {
   Assessment as ReportsIcon,
   Storage as DriveIcon,
   Settings as SettingsIcon,
+  Unarchive as RetrievalIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { tokens } from "../../theme/theme";
+import { getMenuItemsForRole, MenuItem, UserRole } from "../../utils/roleUtils";
 
 const DRAWER_WIDTH = 280;
 
@@ -61,16 +64,62 @@ const Logo = styled(Box)({
   },
 });
 
-const menuItems = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Companies", icon: <CompanyIcon />, path: "/companies" },
-  { text: "Users & Roles", icon: <UsersIcon />, path: "/users" },
-  { text: "Document Types", icon: <DocumentIcon />, path: "/document-types" },
-  { text: "Archival", icon: <ArchiveIcon />, path: "/archival" },
-  { text: "Retrieval", icon: <ArchiveIcon />, path: "/retrieval" },
-  { text: "Reports", icon: <ReportsIcon />, path: "/reports" },
-  { text: "Drive", icon: <DriveIcon />, path: "/drive" },
-  { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
+// Define all possible menu items with their role permissions
+const allMenuItems: MenuItem[] = [
+  { 
+    text: "Dashboard", 
+    icon: <DashboardIcon />, 
+    path: "/dashboard", 
+    roles: ["SUPER_ADMIN", "COMPANY_ADMIN", "MANAGER", "USER"] 
+  },
+  { 
+    text: "Companies", 
+    icon: <CompanyIcon />, 
+    path: "/companies", 
+    roles: ["SUPER_ADMIN"] 
+  },
+  { 
+    text: "Users & Roles", 
+    icon: <UsersIcon />, 
+    path: "/users", 
+    roles: ["SUPER_ADMIN", "COMPANY_ADMIN"] 
+  },
+  { 
+    text: "Document Types", 
+    icon: <DocumentIcon />, 
+    path: "/document-types", 
+    roles: ["COMPANY_ADMIN", "MANAGER", "USER"] 
+  },
+  { 
+    text: "Archival", 
+    icon: <ArchiveIcon />, 
+    path: "/archival", 
+    roles: ["COMPANY_ADMIN", "MANAGER", "USER"] 
+  },
+  { 
+    text: "Retrieval", 
+    icon: <RetrievalIcon />, 
+    path: "/retrieval", 
+    roles: ["COMPANY_ADMIN", "MANAGER", "USER"] 
+  },
+  { 
+    text: "Reports", 
+    icon: <ReportsIcon />, 
+    path: "/reports", 
+    roles: ["MANAGER"] 
+  },
+  { 
+    text: "Drive", 
+    icon: <DriveIcon />, 
+    path: "/drive", 
+    roles: ["COMPANY_ADMIN", "MANAGER", "USER"] 
+  },
+  { 
+    text: "Settings", 
+    icon: <SettingsIcon />, 
+    path: "/settings", 
+    roles: ["SUPER_ADMIN", "COMPANY_ADMIN", "MANAGER", "USER"] 
+  },
 ];
 
 interface SidebarProps {
@@ -98,7 +147,11 @@ const SidebarBox = styled(Box)<{ $collapsed?: boolean }>(
 const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const isMobile = window.innerWidth < 900;
+
+  // Get filtered menu items based on user role
+  const menuItems = getMenuItemsForRole(user?.role, allMenuItems);
 
   if (isMobile) {
     // Mobile: use Drawer
