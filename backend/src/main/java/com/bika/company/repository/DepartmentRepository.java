@@ -14,5 +14,6 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     List<Department> findByCompanyAndParentIsNull(Company company);
     List<Department> findByParent(Department parent);
     Optional<Department> findByCompanyAndCode(Company company, String code);
+    Optional<Department> findByCompanyAndName(Company company, String name);
     boolean existsByCompanyAndCode(Company company, String code);
 } 

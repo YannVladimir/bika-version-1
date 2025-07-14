@@ -26,11 +26,11 @@ public class Task extends BaseEntity {
     private String description;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "task_status")
     private TaskStatus status;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "task_priority")
     private TaskPriority priority;
     
     @ManyToOne(fetch = FetchType.LAZY)

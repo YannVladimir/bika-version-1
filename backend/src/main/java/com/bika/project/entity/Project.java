@@ -42,7 +42,7 @@ public class Project extends BaseEntity {
     private LocalDateTime endDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "project_status")
     private ProjectStatus status;
 
     @Column(nullable = false)

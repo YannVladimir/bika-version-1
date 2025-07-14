@@ -84,6 +84,7 @@ com\bika\document\service\DocumentTypeService.class
 com\bika\document\entity\DocumentType$DocumentTypeBuilder.class
 com\bika\security\dto\LoginRequest.class
 com\bika\document\service\DocumentService.class
+com\bika\user\dto\CreateUserRequest$CreateUserRequestBuilder.class
 com\bika\company\service\DepartmentService.class
 com\bika\security\dto\AuthenticationResponse$AuthenticationResponseBuilder.class
 com\bika\document\repository\DocumentTypeRepository.class
@@ -109,6 +110,7 @@ com\bika\document\entity\DocumentType$DocumentTypeBuilderImpl.class
 com\bika\document\controller\FolderController.class
 com\bika\util\FindPassword.class
 com\bika\project\dto\ProjectDTO$ProjectDTOBuilder.class
+com\bika\user\dto\CreateUserRequest.class
 com\bika\document\controller\DocumentController.class
 com\bika\common\exception\BikaException.class
 com\bika\user\controller\UserController.class

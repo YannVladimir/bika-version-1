@@ -2,6 +2,7 @@ package com.bika.user.controller;
 
 import com.bika.common.dto.ErrorResponse;
 import com.bika.user.dto.UserDTO;
+import com.bika.user.dto.CreateUserRequest;
 import com.bika.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,49 +20,78 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/v1/users")  // Updated to match the pattern used in CompanyController
 @RequiredArgsConstructor
 @Tag(name = "User", description = "User management APIs")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
 
     @Operation(
+        summary = "Create a new user",
+        description = "Create a new user with the provided details."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "201",
+            description = "User created successfully",
+            content = @Content(schema = @Schema(implementation = UserDTO.class))
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @PostMapping
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {
+        log.info("UserController: createUser called for email: {}", createUserRequest.getEmail());
+        try {
+            UserDTO result = userService.createUser(createUserRequest);
+            log.info("UserController: User created successfully with ID: {}", result.getId());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("UserController: Error creating user", e);
+            throw e;
+        }
+    }
+
+    @Operation(
         summary = "Get all users",
-        description = "Retrieve a list of all users. Requires ADMIN role."
+        description = "Retrieve a list of all users."
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             description = "Users retrieved successfully",
             content = @Content(schema = @Schema(implementation = UserDTO.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+        log.info("UserController: getAllUsers called");
+        try {
+            List<UserDTO> users = userService.getAllUsers();
+            log.info("UserController: Retrieved {} users successfully", users.size());
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            log.error("UserController: Error getting all users", e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Get users by company",
-        description = "Retrieve all users for a specific company. Requires ADMIN or MANAGER role."
+        description = "Retrieve all users for a specific company."
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             description = "Users retrieved successfully",
             content = @Content(schema = @Schema(implementation = UserDTO.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         ),
         @ApiResponse(
             responseCode = "404",
@@ -69,14 +100,22 @@ public class UserController {
         )
     })
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<List<UserDTO>> getUsersByCompany(@PathVariable Long companyId) {
-        return ResponseEntity.ok(userService.getUsersByCompany(companyId));
+        log.info("UserController: getUsersByCompany called for companyId: {}", companyId);
+        try {
+            List<UserDTO> users = userService.getUsersByCompany(companyId);
+            log.info("UserController: Retrieved {} users for company {}", users.size(), companyId);
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            log.error("UserController: Error getting users by company: {}", companyId, e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Get users by department",
-        description = "Retrieve all users for a specific department. Requires ADMIN or MANAGER role."
+        description = "Retrieve all users for a specific department."
     )
     @ApiResponses({
         @ApiResponse(
@@ -85,25 +124,28 @@ public class UserController {
             content = @Content(schema = @Schema(implementation = UserDTO.class))
         ),
         @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
             responseCode = "404",
             description = "Department not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @GetMapping("/department/{departmentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<UserDTO>> getUsersByDepartment(@PathVariable Long departmentId) {
-        return ResponseEntity.ok(userService.getUsersByDepartment(departmentId));
+        log.info("UserController: getUsersByDepartment called for departmentId: {}", departmentId);
+        try {
+            List<UserDTO> users = userService.getUsersByDepartment(departmentId);
+            log.info("UserController: Retrieved {} users for department {}", users.size(), departmentId);
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            log.error("UserController: Error getting users by department: {}", departmentId, e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Get user by ID",
-        description = "Retrieve a user by their ID. Users can view their own profile, ADMIN/MANAGER can view any user."
+        description = "Retrieve a user by their ID."
     )
     @ApiResponses({
         @ApiResponse(
@@ -115,17 +157,20 @@ public class UserController {
             responseCode = "404",
             description = "User not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or #id == authentication.principal.id")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+        log.info("UserController: getUserById called for id: {}", id);
+        try {
+            UserDTO user = userService.getUserById(id);
+            log.info("UserController: User found with ID: {}", id);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            log.error("UserController: Error getting user by id: {}", id, e);
+            throw e;
+        }
     }
 
     @Operation(
@@ -146,12 +191,20 @@ public class UserController {
     })
     @GetMapping("/profile")
     public ResponseEntity<UserDTO> getCurrentUserProfile() {
-        return ResponseEntity.ok(userService.getCurrentUserProfile());
+        log.info("UserController: getCurrentUserProfile called");
+        try {
+            UserDTO user = userService.getCurrentUserProfile();
+            log.info("UserController: Current user profile retrieved successfully");
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            log.error("UserController: Error getting current user profile", e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Update user",
-        description = "Update an existing user's details. ADMIN can update any user, MANAGER can update users in their company."
+        description = "Update an existing user's details."
     )
     @ApiResponses({
         @ApiResponse(
@@ -168,19 +221,22 @@ public class UserController {
             responseCode = "404",
             description = "User not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER') or #id == authentication.principal.id")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable Long id,
             @Valid @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.updateUser(id, userDTO));
+        log.info("UserController: updateUser called for id: {}", id);
+        try {
+            UserDTO result = userService.updateUser(id, userDTO);
+            log.info("UserController: User updated successfully with ID: {}", id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("UserController: Error updating user with id: {}", id, e);
+            throw e;
+        }
     }
 
     @Operation(
@@ -201,12 +257,20 @@ public class UserController {
     })
     @PutMapping("/profile")
     public ResponseEntity<UserDTO> updateCurrentUserProfile(@Valid @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.updateCurrentUserProfile(userDTO));
+        log.info("UserController: updateCurrentUserProfile called");
+        try {
+            UserDTO result = userService.updateCurrentUserProfile(userDTO);
+            log.info("UserController: Current user profile updated successfully");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("UserController: Error updating current user profile", e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Deactivate user",
-        description = "Deactivate a user account. Requires ADMIN role."
+        description = "Deactivate a user account."
     )
     @ApiResponses({
         @ApiResponse(
@@ -218,22 +282,25 @@ public class UserController {
             responseCode = "404",
             description = "User not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @PatchMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<UserDTO> deactivateUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.deactivateUser(id));
+        log.info("UserController: deactivateUser called for id: {}", id);
+        try {
+            UserDTO result = userService.deactivateUser(id);
+            log.info("UserController: User deactivated successfully with ID: {}", id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("UserController: Error deactivating user with id: {}", id, e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Activate user",
-        description = "Activate a user account. Requires ADMIN role."
+        description = "Activate a user account."
     )
     @ApiResponses({
         @ApiResponse(
@@ -245,22 +312,25 @@ public class UserController {
             responseCode = "404",
             description = "User not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @PatchMapping("/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<UserDTO> activateUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.activateUser(id));
+        log.info("UserController: activateUser called for id: {}", id);
+        try {
+            UserDTO result = userService.activateUser(id);
+            log.info("UserController: User activated successfully with ID: {}", id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("UserController: Error activating user with id: {}", id, e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Delete user",
-        description = "Delete a user by their ID. Requires ADMIN role."
+        description = "Delete a user by their ID."
     )
     @ApiResponses({
         @ApiResponse(
@@ -271,17 +341,19 @@ public class UserController {
             responseCode = "404",
             description = "User not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        log.info("UserController: deleteUser called for id: {}", id);
+        try {
+            userService.deleteUser(id);
+            log.info("UserController: User deleted successfully with ID: {}", id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("UserController: Error deleting user with id: {}", id, e);
+            throw e;
+        }
     }
 } 

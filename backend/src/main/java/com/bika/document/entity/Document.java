@@ -56,7 +56,7 @@ public class Document extends BaseEntity {
     private String metadata;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "document_status")
     private DocumentStatus status;
     
     @Column(name = "physical_location", columnDefinition = "jsonb")

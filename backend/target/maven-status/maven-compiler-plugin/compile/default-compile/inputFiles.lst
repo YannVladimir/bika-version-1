@@ -69,6 +69,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\e
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\LoginRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\repository\UserRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\dto\UserStatsDTO.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\dto\CreateUserRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\DocumentDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\PasswordTest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\CreateDocumentRequest.java

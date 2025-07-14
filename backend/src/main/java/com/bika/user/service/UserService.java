@@ -5,34 +5,85 @@ import com.bika.company.entity.Department;
 import com.bika.company.repository.CompanyRepository;
 import com.bika.company.repository.DepartmentRepository;
 import com.bika.user.dto.UserDTO;
+import com.bika.user.dto.CreateUserRequest;
 import com.bika.user.entity.User;
 import com.bika.user.entity.UserRole;
 import com.bika.user.repository.UserRepository;
 import com.bika.common.exception.ResourceNotFoundException;
+import com.bika.common.exception.DuplicateResourceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final DepartmentRepository departmentRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserService(UserRepository userRepository, 
                       CompanyRepository companyRepository,
-                      DepartmentRepository departmentRepository) {
+                      DepartmentRepository departmentRepository,
+                      PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.departmentRepository = departmentRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public UserDTO createUser(CreateUserRequest createUserRequest) {
+        log.info("UserService: Creating user with email: {}", createUserRequest.getEmail());
+        
+        // Check if user already exists
+        if (userRepository.existsByEmail(createUserRequest.getEmail())) {
+            throw new DuplicateResourceException("User with email " + createUserRequest.getEmail() + " already exists");
+        }
+        
+        // Get the company
+        Company company = companyRepository.findById(createUserRequest.getCompanyId())
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + createUserRequest.getCompanyId()));
+        
+        // Get or determine the department
+        Department department = null;
+        if (createUserRequest.getDepartmentId() != null) {
+            // Use specified department
+            department = departmentRepository.findById(createUserRequest.getDepartmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + createUserRequest.getDepartmentId()));
+        } else {
+            // Find the Administration department for this company
+            department = departmentRepository.findByCompanyAndName(company, "Administration")
+                    .orElseThrow(() -> new ResourceNotFoundException("Administration department not found for company: " + company.getName()));
+        }
+        
+        // Create the user
+        User user = User.builder()
+                .username(createUserRequest.getUsername())
+                .email(createUserRequest.getEmail())
+                .password(passwordEncoder.encode(createUserRequest.getPassword()))
+                .firstName(createUserRequest.getFirstName())
+                .lastName(createUserRequest.getLastName())
+                .company(company)
+                .department(department)
+                .role(createUserRequest.getRole())
+                .active(true)
+                .build();
+        
+        User savedUser = userRepository.save(user);
+        log.info("UserService: User created successfully with ID: {}", savedUser.getId());
+        return convertToDTO(savedUser);
     }
 
     @Transactional(readOnly = true)

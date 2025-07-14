@@ -51,14 +51,51 @@ export interface RegisterResponse {
   departmentId?: number;
 }
 
+// User types - Enhanced to match backend
 export interface User {
   id: number;
+  username: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: UserRole;
   companyId: number;
   departmentId?: number;
+  active: boolean;
+  lastLogin?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  COMPANY_ADMIN = 'COMPANY_ADMIN',
+  MANAGER = 'MANAGER',
+  USER = 'USER'
+}
+
+export interface CreateUserRequest {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  companyId: number;
+  departmentId?: number;
+  role: UserRole;
+}
+
+// Department types
+export interface Department {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+  companyId: number;
+  parentId?: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Company types
@@ -98,7 +135,7 @@ export interface Document {
 export interface DocumentType {
   id: number;
   name: string;
-  description: string;
+  description?: string;
   retentionPeriod: number;
   isActive: boolean;
 } 
