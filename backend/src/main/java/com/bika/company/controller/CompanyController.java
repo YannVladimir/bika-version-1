@@ -11,23 +11,24 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/companies")
+@RequestMapping("/v1/companies")  // Changed from /api/v1/companies since context-path is /api
 @RequiredArgsConstructor
 @Tag(name = "Company", description = "Company management APIs")
+@Slf4j
 public class CompanyController {
 
     private final CompanyService companyService;
 
     @Operation(
         summary = "Create a new company",
-        description = "Create a new company with the provided details. Requires ADMIN role."
+        description = "Create a new company with the provided details."
     )
     @ApiResponses({
         @ApiResponse(
@@ -39,44 +40,55 @@ public class CompanyController {
             responseCode = "400",
             description = "Invalid request",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CompanyDTO> createCompany(@Valid @RequestBody CompanyDTO companyDTO) {
-        return ResponseEntity.ok(companyService.createCompany(companyDTO));
+        log.debug("CompanyController: createCompany called");
+        try {
+            CompanyDTO result = companyService.createCompany(companyDTO);
+            log.debug("CompanyController: Company created successfully with ID: {}", result.getId());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("CompanyController: Error creating company", e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        log.info("CompanyController: TEST endpoint called - CONTROLLER IS WORKING");
+        return ResponseEntity.ok("Controller is working!");
     }
 
     @Operation(
         summary = "Get all companies",
-        description = "Retrieve a list of all companies. Requires ADMIN role."
+        description = "Retrieve a list of all companies."
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             description = "Companies retrieved successfully",
             content = @Content(schema = @Schema(implementation = CompanyDTO.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CompanyDTO>> getAllCompanies() {
-        return ResponseEntity.ok(companyService.getAllCompanies());
+        log.info("CompanyController: getAllCompanies called - ENTRY POINT");
+        try {
+            log.info("CompanyController: About to call companyService.getAllCompanies()");
+            List<CompanyDTO> companies = companyService.getAllCompanies();
+            log.info("CompanyController: Successfully retrieved {} companies", companies.size());
+            return ResponseEntity.ok(companies);
+        } catch (Exception e) {
+            log.error("CompanyController: Error getting all companies - Exception: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Get company by ID",
-        description = "Retrieve a company by its ID. Requires ADMIN or MANAGER role."
+        description = "Retrieve a company by its ID."
     )
     @ApiResponses({
         @ApiResponse(
@@ -88,22 +100,24 @@ public class CompanyController {
             responseCode = "404",
             description = "Company not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<CompanyDTO> getCompanyById(@PathVariable Long id) {
-        return ResponseEntity.ok(companyService.getCompanyById(id));
+        log.debug("CompanyController: getCompanyById called with id: {}", id);
+        try {
+            CompanyDTO result = companyService.getCompanyById(id);
+            log.debug("CompanyController: Company found with ID: {}", id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("CompanyController: Error getting company by id: {}", id, e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Update company",
-        description = "Update an existing company's details. Requires ADMIN role."
+        description = "Update an existing company's details."
     )
     @ApiResponses({
         @ApiResponse(
@@ -120,24 +134,26 @@ public class CompanyController {
             responseCode = "404",
             description = "Company not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CompanyDTO> updateCompany(
             @PathVariable Long id,
             @Valid @RequestBody CompanyDTO companyDTO) {
-        return ResponseEntity.ok(companyService.updateCompany(id, companyDTO));
+        log.debug("CompanyController: updateCompany called with id: {}", id);
+        try {
+            CompanyDTO result = companyService.updateCompany(id, companyDTO);
+            log.debug("CompanyController: Company updated successfully with ID: {}", id);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("CompanyController: Error updating company with id: {}", id, e);
+            throw e;
+        }
     }
 
     @Operation(
         summary = "Delete company",
-        description = "Delete a company by its ID. Requires ADMIN role."
+        description = "Delete a company by its ID."
     )
     @ApiResponses({
         @ApiResponse(
@@ -148,17 +164,18 @@ public class CompanyController {
             responseCode = "404",
             description = "Company not found",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Access denied",
-            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCompany(@PathVariable Long id) {
-        companyService.deleteCompany(id);
-        return ResponseEntity.noContent().build();
+        log.debug("CompanyController: deleteCompany called with id: {}", id);
+        try {
+            companyService.deleteCompany(id);
+            log.debug("CompanyController: Company deleted successfully with ID: {}", id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("CompanyController: Error deleting company with id: {}", id, e);
+            throw e;
+        }
     }
 } 

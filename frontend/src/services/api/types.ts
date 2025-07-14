@@ -65,19 +65,22 @@ export interface User {
 export interface Company {
   id: number;
   name: string;
+  code: string;
   email: string;
-  phone: string;
-  address: string;
-  status: 'ACTIVE' | 'INACTIVE';
-  createdAt: string;
-  updatedAt: string;
+  phone?: string;
+  address?: string;
+  description?: string;
+  isActive: boolean;
 }
 
 export interface CreateCompanyRequest {
   name: string;
+  code: string;
   email: string;
-  phone: string;
-  address: string;
+  phone?: string;
+  address?: string;
+  description?: string;
+  isActive: boolean;
 }
 
 // Document types

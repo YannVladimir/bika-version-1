@@ -1,54 +1,35 @@
 import apiClient from './client';
-import { LoginRequest, LoginResponse, RegisterResponse, User } from './types';
+import { LoginRequest, LoginResponse, User } from './types';
 
 class AuthService {
+  private readonly TOKEN_KEY = 'token';
+  private readonly USER_KEY = 'user';
+
+  // Remove the constructor that was clearing storage on initialization
+  // constructor() {
+  //   // Clear any existing tokens on initialization to prevent auth issues
+  //   this.clearStorage();
+  // }
+
+  private clearStorage(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+  }
+
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
     
-    // Store token and user data
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      
-      // Create user object from login response
-      const user: User = {
-        id: response.data.id,
-        email: response.data.email,
-        firstName: response.data.firstName,
-        lastName: response.data.lastName,
-        role: response.data.role,
-        companyId: response.data.companyId,
-        departmentId: response.data.departmentId,
-      };
-      localStorage.setItem('user', JSON.stringify(user));
-    }
-    
-    return response.data;
-  }
-
-  async register(userData: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    companyId: number;
-  }): Promise<RegisterResponse> {
-    const response = await apiClient.post<RegisterResponse>('/auth/register', userData);
-    
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      
-      // Create user object from register response
-      const user: User = {
-        id: response.data.id,
-        email: response.data.email,
-        firstName: response.data.firstName,
-        lastName: response.data.lastName,
-        role: response.data.role,
-        companyId: response.data.companyId,
-        departmentId: response.data.departmentId,
-      };
-      localStorage.setItem('user', JSON.stringify(user));
-    }
+    // Store the token and user data
+    localStorage.setItem(this.TOKEN_KEY, response.data.token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify({
+      id: response.data.id,
+      email: response.data.email,
+      firstName: response.data.firstName,
+      lastName: response.data.lastName,
+      role: response.data.role,
+      companyId: response.data.companyId,
+      departmentId: response.data.departmentId,
+    }));
     
     return response.data;
   }
@@ -56,31 +37,41 @@ class AuthService {
   async logout(): Promise<void> {
     try {
       await apiClient.post('/auth/logout');
+    } catch (error) {
+      // Even if logout fails on server, clear local storage
+      console.warn('Logout request failed, but clearing local storage anyway');
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      this.clearStorage();
     }
   }
 
-  getCurrentUser(): User | null {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('token');
+  getUser(): User | null {
+    const userStr = localStorage.getItem(this.USER_KEY);
+    return userStr ? JSON.parse(userStr) : null;
   }
 
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
 
-  // Method to fetch fresh user profile from API
   async fetchUserProfile(): Promise<User> {
-    const response = await apiClient.get<User>('/users/profile');
-    const user = response.data;
-    localStorage.setItem('user', JSON.stringify(user));
-    return user;
+    const response = await apiClient.get<User>('/v1/users/profile');
+    
+    // Update stored user data with fresh profile data
+    const currentUser = this.getUser();
+    if (currentUser) {
+      const updatedUser = {
+        ...currentUser,
+        ...response.data
+      };
+      localStorage.setItem(this.USER_KEY, JSON.stringify(updatedUser));
+    }
+    
+    return response.data;
   }
 }
 

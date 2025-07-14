@@ -13,13 +13,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (userData: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    companyId: number;
-  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const currentUser = authService.getCurrentUser();
+    const currentUser = authService.getUser();
     if (currentUser && authService.isAuthenticated()) {
       setUser(currentUser);
     }
@@ -51,28 +44,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      await authService.login({ email, password });
-      // Get the user from localStorage (where authService stored it)
-      const currentUser = authService.getCurrentUser();
-      setUser(currentUser);
+      const response = await authService.login({ email, password });
+      const userData: User = {
+        id: response.id,
+        email: response.email,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        role: response.role,
+        companyId: response.companyId,
+        departmentId: response.departmentId,
+      };
+      setUser(userData);
     } catch (error) {
-      throw error;
-    }
-  };
-
-  const register = async (userData: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    companyId: number;
-  }) => {
-    try {
-      await authService.register(userData);
-      // Get the user from localStorage (where authService stored it)
-      const currentUser = authService.getCurrentUser();
-      setUser(currentUser);
-    } catch (error) {
+      console.error("Login failed:", error);
       throw error;
     }
   };
@@ -80,6 +64,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await authService.logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      throw error;
     } finally {
       setUser(null);
     }
@@ -91,7 +78,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
-    register,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

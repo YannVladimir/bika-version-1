@@ -136,11 +136,13 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const SidebarBox = styled(Box)<{ $collapsed?: boolean }>(
-  ({ theme, $collapsed }) => ({
-    width: $collapsed ? 80 : 280,
-    minWidth: $collapsed ? 80 : 280,
-    maxWidth: $collapsed ? 80 : 280,
+const SidebarBox = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'collapsed',
+})<{ collapsed?: boolean }>(
+  ({ theme, collapsed }) => ({
+    width: collapsed ? 80 : 280,
+    minWidth: collapsed ? 80 : 280,
+    maxWidth: collapsed ? 80 : 280,
     height: "100vh",
     backgroundColor: theme.palette.background.paper,
     color: theme.palette.text.primary,
@@ -214,7 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, collapsed, onClose }) => {
 
   // Desktop: use Box as flex child
   return (
-    <SidebarBox $collapsed={collapsed}>
+    <SidebarBox collapsed={collapsed}>
       <Logo
         sx={{
           justifyContent: collapsed ? "center" : "flex-start",

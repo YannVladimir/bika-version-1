@@ -42,7 +42,11 @@ const router = createBrowserRouter(
         },
         {
           path: "companies",
-          element: <Companies />,
+          element: (
+            <ProtectedRoute requiredRoles={["SUPER_ADMIN"]}>
+              <Companies />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "users",
