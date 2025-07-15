@@ -9,7 +9,7 @@ import Departments from "./pages/Departments/Departments";
 import DocumentTypes from "./pages/DocumentTypes/DocumentTypes";
 import ArchivalPage from "./pages/Archival/ArchivalPage";
 import Reports from "./pages/Reports/ReportsPage";
-import Drive from "./pages/Drive/Drive";
+import DrivePage from "./pages/Drive/DrivePage";
 import Settings from "./pages/Settings/Settings";
 import Profile from "./pages/Profile/Profile";
 import Login from "./pages/Login/Login";
@@ -79,7 +79,7 @@ const router = createBrowserRouter(
         },
         {
           path: "drive",
-          element: <Drive />,
+          element: <DrivePage />,
         },
         {
           path: "settings",

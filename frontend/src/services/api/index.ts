@@ -9,6 +9,8 @@ export { default as departmentService } from './departmentService';
 export { default as documentTypeService } from './documentTypeService';
 export { default as folderService } from './folderService';
 export { default as documentService } from './documentService';
+export { default as driveService } from './driveService';
 
 // Export types
-export * from './types'; 
+export * from './types';
+export * from './driveService'; 

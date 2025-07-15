@@ -101,14 +101,14 @@ public class DocumentController {
     public ResponseEntity<List<DocumentDTO>> getDocumentsByCompany(@PathVariable Long companyId) {
         log.info("DocumentController: getDocumentsByCompany called for companyId: {}", companyId);
         try {
-            Optional<Company> companyOpt = companyRepository.findById(companyId);
-            if (companyOpt.isPresent()) {
+        Optional<Company> companyOpt = companyRepository.findById(companyId);
+        if (companyOpt.isPresent()) {
                 List<DocumentDTO> documents = documentService.getDocumentsByCompany(companyOpt.get());
                 log.info("DocumentController: Retrieved {} documents for company {}", documents.size(), companyId);
                 return ResponseEntity.ok(documents);
-            }
+        }
             log.warn("DocumentController: Company not found with ID: {}", companyId);
-            return ResponseEntity.notFound().build();
+        return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("DocumentController: Error getting documents by company: {}", companyId, e);
             throw e;
@@ -144,7 +144,7 @@ public class DocumentController {
                     })
                     .orElseGet(() -> {
                         log.warn("DocumentController: Document not found with ID: {}", id);
-                        return ResponseEntity.notFound().build();
+        return ResponseEntity.notFound().build();
                     });
         } catch (Exception e) {
             log.error("DocumentController: Error getting document by id: {}", id, e);
@@ -259,6 +259,69 @@ public class DocumentController {
         } catch (Exception e) {
             log.error("DocumentController: Error deleting document with id: {}", id, e);
             throw e;
+        }
+    }
+
+    @Operation(
+        summary = "Download document file",
+        description = "Download the file attachment of a document by its ID."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "File downloaded successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Document or file not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @GetMapping("/{id}/download")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
+    public ResponseEntity<byte[]> downloadDocument(@PathVariable Long id) {
+        log.info("DocumentController: downloadDocument called for id: {}", id);
+        try {
+            Document document = documentService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Document not found with id: " + id));
+            
+            if (document.getFilePath() == null || document.getFilePath().isEmpty()) {
+                log.warn("DocumentController: No file attached to document with ID: {}", id);
+        return ResponseEntity.notFound().build();
+    }
+
+            // For now, return a simple response indicating the file path
+            // In a real implementation, you would read the file from storage (MinIO, filesystem, etc.)
+            String fileContent = "File content for: " + document.getName();
+            byte[] fileBytes = fileContent.getBytes();
+            
+            String fileName = document.getName() + getFileExtension(document.getMimeType());
+            
+            log.info("DocumentController: File downloaded successfully for document ID: {}", id);
+            
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
+                    .header("Content-Type", document.getMimeType() != null ? document.getMimeType() : "application/octet-stream")
+                    .body(fileBytes);
+                    
+        } catch (Exception e) {
+            log.error("DocumentController: Error downloading document with id: {}", id, e);
+            throw e;
+        }
+    }
+    
+    private String getFileExtension(String mimeType) {
+        if (mimeType == null) return "";
+        switch (mimeType) {
+            case "application/pdf": return ".pdf";
+            case "application/msword": return ".doc";
+            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document": return ".docx";
+            case "application/vnd.ms-excel": return ".xls";
+            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": return ".xlsx";
+            case "image/jpeg": return ".jpg";
+            case "image/png": return ".png";
+            case "text/plain": return ".txt";
+            default: return "";
         }
     }
 } 

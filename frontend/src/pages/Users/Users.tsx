@@ -619,7 +619,7 @@ const Users: React.FC<UsersProps> = () => {
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleFormChange('password', e.target.value)}
-                fullWidth
+        fullWidth
                 required
                 helperText="Minimum 6 characters required"
                 error={formData.password.length > 0 && formData.password.length < 6}

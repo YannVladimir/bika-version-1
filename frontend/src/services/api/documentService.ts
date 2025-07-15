@@ -33,6 +33,14 @@ class DocumentService {
     await apiClient.delete(`${this.basePath}/${id}`);
   }
 
+  // Download document file
+  async downloadDocument(id: number): Promise<Blob> {
+    const response = await apiClient.get(`${this.basePath}/${id}/download`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  }
+
   // Helper method to create new document with defaults
   createNewDocument(
     name: string, 
