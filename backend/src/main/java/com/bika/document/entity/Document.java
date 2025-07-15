@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "documents")
@@ -43,6 +45,9 @@ public class Document extends BaseEntity {
     @Column(nullable = false)
     private String name;
     
+    @Column(nullable = false, unique = true)
+    private String code;
+    
     @Column(name = "file_path", nullable = false)
     private String filePath;
     
@@ -52,13 +57,15 @@ public class Document extends BaseEntity {
     @Column(name = "mime_type", nullable = false)
     private String mimeType;
     
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String metadata;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "document_status")
+    @Column(nullable = false)
     private DocumentStatus status;
     
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "physical_location", columnDefinition = "jsonb")
     private String physicalLocation;
     

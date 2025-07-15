@@ -140,15 +140,65 @@ export interface DocumentField {
   active: boolean;
 }
 
+// Enhanced Document interface to match backend DTO
 export interface Document {
   id: number;
   name: string;
-  type: string;
-  size: number;
-  createdAt: string;
-  updatedAt: string;
+  code: string;
+  companyId: number;
+  departmentId?: number;
+  folderId?: number;
+  documentTypeId?: number;
+  documentTypeName?: string;
+  filePath?: string;
+  fileSize?: number;
+  mimeType?: string;
+  metadata?: { [key: string]: any }; // Dynamic field values
+  status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED' | 'DELETED';
+  physicalLocation?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+}
+
+// Folder interface to match backend DTO
+export interface Folder {
+  id: number;
+  name: string;
+  path: string;
+  description?: string;
+  parentId?: number;
+  companyId: number;
+  departmentId?: number;
+  children?: Folder[];
+  documents?: Document[];
+  isActive?: boolean;
+}
+
+// Create document request to match backend
+export interface CreateDocumentRequest {
+  name: string;
+  code: string;
+  companyId: number;
+  departmentId?: number;
   folderId?: number;
   documentTypeId: number;
+  filePath?: string;
+  fileSize?: number;
+  mimeType?: string;
+  fieldValues?: { [key: string]: any }; // Dynamic field values
+  status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED' | 'DELETED';
+  physicalLocation?: string;
+}
+
+// Create folder request
+export interface CreateFolderRequest {
+  name: string;
+  description?: string;
+  parentId?: number;
+  companyId: number;
+  departmentId?: number;
 }
 
 export interface DocumentType {

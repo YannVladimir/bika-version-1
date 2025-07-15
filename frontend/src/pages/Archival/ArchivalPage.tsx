@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -11,14 +11,9 @@ import {
   TextField,
   MenuItem,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
+  Alert,
+  CircularProgress,
+  FormHelperText,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -28,241 +23,350 @@ import {
   CreateNewFolder as NewFolderIcon,
 } from "@mui/icons-material";
 import { tokens } from "../../theme/theme";
+import { useAuth } from "../../context/AuthContext";
+import { 
+  folderService, 
+  documentService, 
+  documentTypeService,
+  Folder, 
+  Document, 
+  DocumentType, 
+  CreateFolderRequest, 
+  CreateDocumentRequest 
+} from "../../services/api";
 
-// Types
-interface DocumentType {
-  id: string;
-  name: string;
-  fields: string[];
-}
-interface DocumentData {
-  id: number;
-  name: string;
-  type: string;
-  fields: { [key: string]: string };
-  attachment: string;
-}
-interface FolderData {
-  id: number;
-  name: string;
-  folders: FolderData[];
-  documents: DocumentData[];
-}
-
-// Mock document types and fields
-const documentTypes: DocumentType[] = [
-  {
-    id: "invoice",
-    name: "Invoice",
-    fields: ["Invoice Number", "Date", "Amount"],
-  },
-  {
-    id: "contract",
-    name: "Contract",
-    fields: ["Contract Name", "Start Date", "End Date"],
-  },
-  { id: "report", name: "Report", fields: ["Report Title", "Author"] },
-];
-
-// Mock folder/document structure
-const initialFolders: FolderData[] = [
-  {
-    id: 1,
-    name: "Documents",
-    folders: [
-      {
-        id: 4,
-        name: "Subfolder A",
-        folders: [],
-        documents: [
-          {
-            id: 3,
-            name: "Contract 2024",
-            type: "contract",
-            fields: {
-              "Contract Name": "Service Agreement",
-              "Start Date": "2024-01-01",
-              "End Date": "2024-12-31",
-            },
-            attachment: "contract2024.pdf",
-          },
-        ],
-      },
-    ],
-    documents: [
-      {
-        id: 1,
-        name: "Invoice Jan",
-        type: "invoice",
-        fields: {
-          "Invoice Number": "INV-001",
-          Date: "2024-01-10",
-          Amount: "1000",
-        },
-        attachment: "invoice_jan.pdf",
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "Images",
-    folders: [],
-    documents: [],
-  },
-  {
-    id: 3,
-    name: "Projects",
-    folders: [],
-    documents: [
-      {
-        id: 2,
-        name: "Project Report",
-        type: "report",
-        fields: { "Report Title": "Q1 Progress", Author: "Alice" },
-        attachment: "q1_report.pdf",
-      },
-    ],
-  },
-];
-
-function findFolderByPath(
-  folders: FolderData[],
-  path: string[]
-): FolderData | null {
-  let current = folders;
-  let folder = null;
-  for (const name of path) {
-    folder = current.find((f) => f.name === name);
-    if (!folder) return null;
-    current = folder.folders;
+// Helper function to find folder by path
+const findFolderByPath = (folders: Folder[], path: string[]): Folder | undefined => {
+  if (path.length === 0) return undefined;
+  
+  for (const folder of folders) {
+    if (folder.name === path[0]) {
+      if (path.length === 1) return folder;
+      if (folder.children) {
+        return findFolderByPath(folder.children, path.slice(1));
+      }
+    }
   }
-  return folder || { id: -1, name: "Root", folders: folders, documents: [] };
-}
+  return undefined;
+};
 
 const ArchivalPage: React.FC = () => {
-  const [folders, setFolders] = useState<FolderData[]>(initialFolders);
+  const { user } = useAuth();
+  
+  // State for folders and navigation
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [currentPath, setCurrentPath] = useState<string[]>([]);
+  const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
+  
+  // State for document types
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
+  
+  // Modal states
   const [openUpload, setOpenUpload] = useState(false);
   const [openNewFolder, setOpenNewFolder] = useState(false);
-  const [selectedType, setSelectedType] = useState("");
+  const [viewDoc, setViewDoc] = useState<Document | null>(null);
+  
+  // Form states
+  const [selectedType, setSelectedType] = useState<number | "">("");
   const [attachment, setAttachment] = useState<File | null>(null);
-  const [docFields, setDocFields] = useState<{ [key: string]: string }>({});
+  const [docFields, setDocFields] = useState<{ [key: string]: any }>({});
   const [newFolderName, setNewFolderName] = useState("");
-  const [viewDoc, setViewDoc] = useState<DocumentData | null>(null);
+  const [newFolderDescription, setNewFolderDescription] = useState("");
+  const [documentName, setDocumentName] = useState("");
+  const [documentCode, setDocumentCode] = useState("");
+  
+  // Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [folderLoading, setFolderLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use a local type for currentFolder that allows fallback
-  type FolderLike = FolderData;
-  const fallbackFolder: FolderData = {
-    id: -1,
-    name: "Root",
-    folders,
-    documents: [],
+  // Load initial data
+  useEffect(() => {
+    const loadInitialData = async () => {
+      if (!user?.companyId) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Load root folders and document types in parallel
+        const [foldersData, documentTypesData] = await Promise.all([
+          folderService.getRootFoldersByCompany(user.companyId),
+          documentTypeService.getDocumentTypesByCompany(user.companyId)
+        ]);
+        
+        setFolders(foldersData);
+        setDocumentTypes(documentTypesData);
+      } catch (err) {
+        console.error('Error loading data:', err);
+        setError('Failed to load folders and document types');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, [user?.companyId]);
+
+  // Update current folder when path changes
+  useEffect(() => {
+    if (currentPath.length === 0) {
+      setCurrentFolder(null);
+    } else {
+      const folder = findFolderByPath(folders, currentPath);
+      setCurrentFolder(folder || null);
+    }
+  }, [currentPath, folders]);
+
+  // Helper function to reset upload form
+  const resetUploadForm = () => {
+    setSelectedType("");
+    setDocFields({});
+    setAttachment(null);
+    setDocumentName("");
+    setDocumentCode("");
   };
-  const currentFolder: FolderLike =
-    currentPath.length === 0
-      ? fallbackFolder
-      : findFolderByPath(folders, currentPath) || fallbackFolder;
 
   // Folder navigation
-  const handleFolderClick = (name: string) => {
-    setCurrentPath([...currentPath, name]);
-  };
-  const handleBack = (idx?: number) => {
-    if (typeof idx === "number") setCurrentPath(currentPath.slice(0, idx + 1));
-    else setCurrentPath([]);
-  };
-
-  // New Folder
-  const handleCreateFolder = () => {
-    if (!newFolderName) return;
-    const addFolder = (folders: FolderData[], path: string[]): FolderData[] => {
-      if (path.length === 0) {
-        folders.push({
-          id: Date.now(),
-          name: newFolderName,
-          folders: [],
-          documents: [],
+  const handleFolderClick = async (folder: Folder) => {
+    try {
+      setLoading(true);
+      // Get folder contents including documents
+      const folderWithContents = await folderService.getFolderContents(folder.id);
+      
+      // Update the folder in our state with the new contents
+      const updateFolderInTree = (folders: Folder[], targetId: number, newData: Folder): Folder[] => {
+        return folders.map(f => {
+          if (f.id === targetId) {
+            return { ...f, ...newData };
+          }
+          if (f.children) {
+            return { ...f, children: updateFolderInTree(f.children, targetId, newData) };
+          }
+          return f;
         });
-        return folders;
-      }
-      return folders.map((f) =>
-        f.name === path[0]
-          ? { ...f, folders: addFolder(f.folders, path.slice(1)) }
-          : f
-      );
-    };
-    setFolders((prev) => addFolder([...prev], currentPath));
-    setNewFolderName("");
-    setOpenNewFolder(false);
+      };
+      
+      setFolders(prev => updateFolderInTree(prev, folder.id, folderWithContents));
+      setCurrentPath([...currentPath, folder.name]);
+    } catch (err) {
+      console.error('Error loading folder contents:', err);
+      setError('Failed to load folder contents');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Upload Document
+  const handleBack = (idx?: number) => {
+    if (typeof idx === "number") {
+      setCurrentPath(currentPath.slice(0, idx + 1));
+    } else {
+      setCurrentPath([]);
+    }
+  };
+
+  // Create new folder
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim() || !user?.companyId) return;
+    
+    try {
+      setFolderLoading(true);
+      setError(null);
+      
+      const folderRequest: CreateFolderRequest = {
+        name: newFolderName,
+        description: newFolderDescription,
+        companyId: user.companyId,
+        departmentId: user.departmentId,
+        parentId: currentFolder?.id,
+      };
+      
+      const newFolder = await folderService.createFolder(folderRequest);
+      
+      // Add the new folder to the appropriate location in our state
+      if (currentPath.length === 0) {
+        // Adding to root
+        setFolders(prev => [...prev, newFolder]);
+      } else {
+        // Adding to current folder
+        const updateFolderChildren = (folders: Folder[], path: string[], newChild: Folder): Folder[] => {
+          if (path.length === 0) return folders;
+          
+          return folders.map(f => {
+            if (f.name === path[0]) {
+              if (path.length === 1) {
+                return { ...f, children: [...(f.children || []), newChild] };
+              }
+              if (f.children) {
+                return { ...f, children: updateFolderChildren(f.children, path.slice(1), newChild) };
+              }
+            }
+            return f;
+          });
+        };
+        
+        setFolders(prev => updateFolderChildren(prev, currentPath, newFolder));
+      }
+      
+      setNewFolderName("");
+      setNewFolderDescription("");
+      setOpenNewFolder(false);
+    } catch (err) {
+      console.error('Error creating folder:', err);
+      setError('Failed to create folder');
+    } finally {
+      setFolderLoading(false);
+    }
+  };
+
+  // Document upload
   const handleTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedType(event.target.value);
+    const typeId = event.target.value === "" ? "" : Number(event.target.value);
+    setSelectedType(typeId);
     setDocFields({});
+    
+    // Set default document name and code from the document type
+    if (typeof typeId === 'number') {
+      const docType = documentTypes.find(t => t.id === typeId);
+      if (docType) {
+        const defaultName = `New ${docType.name}`;
+        const timestamp = Date.now();
+        const defaultCode = `${docType.code}_${timestamp}`;
+        
+        setDocumentName(defaultName);
+        setDocumentCode(defaultCode);
+      }
+    } else {
+      setDocumentName("");
+      setDocumentCode("");
+    }
   };
-  const handleFieldChange = (field: string, value: string) => {
-    setDocFields((prev) => ({ ...prev, [field]: value }));
+
+  const handleFieldChange = (fieldKey: string, value: any) => {
+    setDocFields(prev => ({ ...prev, [fieldKey]: value }));
   };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setAttachment(event.target.files[0]);
     }
   };
-  const handleUpload = (event: React.FormEvent) => {
+
+  const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!selectedType) return;
-    const docType = documentTypes.find((t) => t.id === selectedType);
-    if (!docType) return;
-    const newDoc: DocumentData = {
-      id: Date.now(),
-      name: docFields[docType.fields[0]] || "Untitled Document",
-      type: selectedType,
-      fields: docFields,
-      attachment: attachment ? attachment.name : "",
-    };
-    const addDoc = (folders: FolderData[], path: string[]): FolderData[] => {
-      if (path.length === 0) {
-        folders[0].documents.push(newDoc);
-        return folders;
+    if (!selectedType || !user?.companyId || !documentName.trim() || !documentCode.trim()) return;
+    
+    try {
+      setUploadLoading(true);
+      setError(null);
+      
+      // Create document request with user-provided code
+      let documentRequest: CreateDocumentRequest = {
+        name: documentName,
+        code: documentCode,
+        documentTypeId: selectedType as number,
+        companyId: user.companyId,
+        departmentId: user.departmentId,
+        folderId: currentFolder?.id,
+        fieldValues: docFields,
+        status: 'ACTIVE',
+      };
+      
+      // Add file information if attachment is provided
+      if (attachment) {
+        documentRequest = documentService.prepareDocumentForUpload(documentRequest, attachment);
       }
-      return folders.map((f) =>
-        f.name === path[0]
-          ? { ...f, folders: addDoc(f.folders, path.slice(1)) }
-          : f
-      );
-    };
-    setFolders((prev) =>
-      addDoc([...prev], currentPath.length ? currentPath : [folders[0].name])
-    );
-    setOpenUpload(false);
-    setSelectedType("");
-    setDocFields({});
-    setAttachment(null);
+      
+      const newDocument = await documentService.createDocument(documentRequest);
+      
+      // Add the document to the current folder's documents
+      if (currentFolder) {
+        setFolders(prev => {
+          const updateFolderDocuments = (folders: Folder[], path: string[], newDoc: Document): Folder[] => {
+            if (path.length === 0) return folders;
+            
+            return folders.map(f => {
+              if (f.name === path[0]) {
+                if (path.length === 1) {
+                  return { ...f, documents: [...(f.documents || []), newDoc] };
+                }
+                if (f.children) {
+                  return { ...f, children: updateFolderDocuments(f.children, path.slice(1), newDoc) };
+                }
+              }
+              return f;
+            });
+          };
+          
+          return updateFolderDocuments(prev, currentPath, newDocument);
+        });
+      }
+      
+      // Reset form
+      setOpenUpload(false);
+      resetUploadForm();
+    } catch (err) {
+      console.error('Error uploading document:', err);
+      setError('Failed to upload document');
+    } finally {
+      setUploadLoading(false);
+    }
   };
 
-  // View Document
-  const handleViewDoc = (doc: DocumentData) => setViewDoc(doc);
+  // View document
+  const handleViewDoc = (doc: Document) => setViewDoc(doc);
   const handleCloseViewDoc = () => setViewDoc(null);
+
+  // Get current folder data for display
+  const getCurrentFolderData = () => {
+    if (currentPath.length === 0) {
+      return { folders, documents: [] };
+    }
+    
+    const folder = findFolderByPath(folders, currentPath);
+    return {
+      folders: folder?.children || [],
+      documents: folder?.documents || []
+    };
+  };
+
+  const { folders: currentFolders, documents: currentDocuments } = getCurrentFolderData();
+  const selectedDocumentType = documentTypes.find(dt => dt.id === selectedType);
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box width="100%" boxSizing="border-box" p={3}>
       <Typography variant="h4" fontWeight={600} mb={4}>
         Document Archival
       </Typography>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link
           component="button"
           variant="body1"
-          onClick={() => handleBack(-1)}
+          onClick={() => handleBack()}
           sx={{ color: tokens.primary.main }}
         >
           Archival
         </Link>
         {currentPath.map((name, idx) => (
           <Link
-            key={name}
+            key={`${name}-${idx}`}
             component="button"
             variant="body1"
             onClick={() => handleBack(idx)}
@@ -272,12 +376,14 @@ const ArchivalPage: React.FC = () => {
           </Link>
         ))}
       </Breadcrumbs>
+
       {/* Action Buttons */}
       <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mb: 2 }}>
         <Button
           variant="outlined"
           startIcon={<NewFolderIcon />}
           onClick={() => setOpenNewFolder(true)}
+          disabled={loading}
         >
           New Folder
         </Button>
@@ -285,6 +391,7 @@ const ArchivalPage: React.FC = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setOpenUpload(true)}
+          disabled={loading || documentTypes.length === 0}
           sx={{
             bgcolor: tokens.primary.main,
             "&:hover": { bgcolor: tokens.primary.dark },
@@ -293,79 +400,83 @@ const ArchivalPage: React.FC = () => {
           Upload Document
         </Button>
       </Box>
+
       {/* Folders and Documents Grid */}
       <Paper
         elevation={0}
         sx={{ p: 2, backgroundColor: tokens.grey[100], borderRadius: 2 }}
       >
         <Grid container spacing={2}>
-          {currentFolder.folders &&
-            currentFolder.folders.map((folder) => (
-              <Grid item xs={12} sm={6} md={4} key={folder.id}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    cursor: "pointer",
-                    "&:hover": { backgroundColor: tokens.grey[200] },
-                  }}
-                  onClick={() => handleFolderClick(folder.name)}
-                >
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <FolderIcon sx={{ color: tokens.secondary.main }} />
+          {currentFolders.map((folder) => (
+            <Grid item xs={12} sm={6} md={4} key={folder.id}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: tokens.grey[200] },
+                }}
+                onClick={() => handleFolderClick(folder)}
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FolderIcon sx={{ color: tokens.secondary.main }} />
+                  <Box>
                     <Typography>{folder.name}</Typography>
+                    {folder.description && (
+                      <Typography variant="body2" color="text.secondary">
+                        {folder.description}
+                      </Typography>
+                    )}
                   </Box>
-                </Paper>
-              </Grid>
-            ))}
-          {currentFolder.documents &&
-            currentFolder.documents.map((doc) => (
-              <Grid item xs={12} sm={6} md={4} key={doc.id}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    cursor: "pointer",
-                    "&:hover": { backgroundColor: tokens.grey[200] },
-                  }}
-                  onClick={() => handleViewDoc(doc)}
-                >
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <FileIcon sx={{ color: tokens.primary.main }} />
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
+          
+          {currentDocuments.map((doc) => (
+            <Grid item xs={12} sm={6} md={4} key={doc.id}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  cursor: "pointer",
+                  "&:hover": { backgroundColor: tokens.grey[200] },
+                }}
+                onClick={() => handleViewDoc(doc)}
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <FileIcon sx={{ color: tokens.primary.main }} />
+                  <Box>
                     <Typography>{doc.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {doc.documentTypeName}
+                    </Typography>
+                    {doc.fileSize && (
+                      <Typography variant="caption" color="text.secondary">
+                        {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
+                      </Typography>
+                    )}
                   </Box>
-                </Paper>
-              </Grid>
-            ))}
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
         </Grid>
+
+        {currentFolders.length === 0 && currentDocuments.length === 0 && (
+          <Box textAlign="center" py={4}>
+            <Typography color="text.secondary">
+              No folders or documents found. Create a folder or upload a document to get started.
+            </Typography>
+          </Box>
+        )}
       </Paper>
+
       {/* New Folder Dialog */}
-      <Dialog open={openNewFolder} onClose={() => setOpenNewFolder(false)}>
-        <DialogTitle>Create New Folder</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Folder Name"
-            fullWidth
-            variant="outlined"
-            value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenNewFolder(false)}>Cancel</Button>
-          <Button onClick={handleCreateFolder} variant="contained">
-            Create
-          </Button>
-        </DialogActions>
-      </Dialog>
-      {/* Upload Modal */}
       <Modal
-        open={openUpload}
-        onClose={() => setOpenUpload(false)}
-        aria-labelledby="upload-document-modal"
-        aria-describedby="upload-document-form"
+        open={openNewFolder}
+        onClose={() => setOpenNewFolder(false)}
+        aria-labelledby="new-folder-modal"
       >
         <Box
           sx={{
@@ -389,13 +500,127 @@ const ArchivalPage: React.FC = () => {
             }}
           >
             <Typography variant="h6" component="h2">
-              Upload Document
+              Create New Folder
             </Typography>
-            <IconButton onClick={() => setOpenUpload(false)} size="small">
+            <IconButton onClick={() => setOpenNewFolder(false)} size="small">
               <CloseIcon />
             </IconButton>
           </Box>
+          
+          <TextField
+            fullWidth
+            label="Folder Name"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            margin="normal"
+            required
+            error={!newFolderName.trim() && newFolderName.length > 0}
+            helperText={!newFolderName.trim() && newFolderName.length > 0 ? "Folder name is required" : ""}
+          />
+          
+          <TextField
+            fullWidth
+            label="Description (Optional)"
+            value={newFolderDescription}
+            onChange={(e) => setNewFolderDescription(e.target.value)}
+            margin="normal"
+            multiline
+            rows={2}
+          />
+          
+          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setOpenNewFolder(false)}
+              fullWidth
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleCreateFolder}
+              disabled={!newFolderName.trim() || folderLoading}
+              fullWidth
+              sx={{
+                bgcolor: tokens.primary.main,
+                "&:hover": { bgcolor: tokens.primary.dark },
+              }}
+            >
+              {folderLoading ? <CircularProgress size={20} /> : "Create"}
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Upload Document Modal */}
+      <Modal
+        open={openUpload}
+        onClose={() => {
+          setOpenUpload(false);
+          resetUploadForm();
+        }}
+        aria-labelledby="upload-document-modal"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 500,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            maxHeight: '90vh',
+            overflow: 'auto',
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6" component="h2">
+              Upload Document
+            </Typography>
+            <IconButton 
+              onClick={() => {
+                setOpenUpload(false);
+                resetUploadForm();
+              }} 
+              size="small"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          
           <form onSubmit={handleUpload}>
+            <TextField
+              fullWidth
+              label="Document Name"
+              value={documentName}
+              onChange={(e) => setDocumentName(e.target.value)}
+              margin="normal"
+              required
+              error={!documentName.trim() && documentName.length > 0}
+              helperText={!documentName.trim() && documentName.length > 0 ? "Document name is required" : ""}
+            />
+            
+            <TextField
+              fullWidth
+              label="Document Code"
+              value={documentCode}
+              onChange={(e) => setDocumentCode(e.target.value)}
+              margin="normal"
+              required
+              error={!documentCode.trim() && documentCode.length > 0}
+              helperText={!documentCode.trim() && documentCode.length > 0 ? "Document code is required" : ""}
+            />
+
             <TextField
               select
               fullWidth
@@ -404,6 +629,8 @@ const ArchivalPage: React.FC = () => {
               onChange={handleTypeChange}
               margin="normal"
               required
+              error={!selectedType}
+              helperText={!selectedType ? "Please select a document type" : ""}
             >
               {documentTypes.map((type) => (
                 <MenuItem key={type.id} value={type.id}>
@@ -411,23 +638,36 @@ const ArchivalPage: React.FC = () => {
                 </MenuItem>
               ))}
             </TextField>
+            
             {/* Dynamic fields for document type */}
-            {selectedType &&
-              documentTypes
-                .find((t) => t.id === selectedType)
-                ?.fields.map((field) => (
-                  <TextField
-                    key={field}
-                    label={field}
-                    fullWidth
-                    margin="normal"
-                    value={docFields[field] || ""}
-                    onChange={(e) => handleFieldChange(field, e.target.value)}
-                    required
-                  />
+            {selectedDocumentType && selectedDocumentType.fields.map((field) => (
+              <TextField
+                key={field.fieldKey}
+                label={field.name + (field.required ? ' *' : '')}
+                fullWidth
+                margin="normal"
+                type={field.fieldType === 'NUMBER' ? 'number' : 
+                      field.fieldType === 'DATE' ? 'date' : 
+                      field.fieldType === 'EMAIL' ? 'email' : 'text'}
+                multiline={field.fieldType === 'TEXTAREA'}
+                rows={field.fieldType === 'TEXTAREA' ? 3 : 1}
+                select={field.fieldType === 'SELECT'}
+                value={docFields[field.fieldKey] || field.defaultValue || ''}
+                onChange={(e) => handleFieldChange(field.fieldKey, e.target.value)}
+                required={field.required}
+                helperText={field.description}
+                InputLabelProps={field.fieldType === 'DATE' ? { shrink: true } : undefined}
+              >
+                {field.fieldType === 'SELECT' && field.options?.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
                 ))}
+              </TextField>
+            ))}
+            
             <input
-              accept="image/*,.pdf,.doc,.docx"
+              accept="*/*"
               style={{ display: "none" }}
               id="attachment-input"
               type="file"
@@ -440,35 +680,51 @@ const ArchivalPage: React.FC = () => {
                 fullWidth
                 sx={{ mt: 2 }}
               >
-                Select Attachment
+                {attachment ? `Selected: ${attachment.name}` : "Select File (Optional)"}
               </Button>
             </label>
+            
             {attachment && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                Selected: {attachment.name}
-              </Typography>
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  File: {attachment.name} ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                </Typography>
+              </Box>
             )}
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={{
-                mt: 2,
-                bgcolor: tokens.primary.main,
-                "&:hover": { bgcolor: tokens.primary.dark },
-              }}
-            >
-              Upload
-            </Button>
+            
+            <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setOpenUpload(false);
+                  resetUploadForm();
+                }}
+                fullWidth
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!selectedType || !documentName.trim() || !documentCode.trim() || uploadLoading}
+                fullWidth
+                sx={{
+                  bgcolor: tokens.primary.main,
+                  "&:hover": { bgcolor: tokens.primary.dark },
+                }}
+              >
+                {uploadLoading ? <CircularProgress size={20} /> : "Upload"}
+              </Button>
+            </Box>
           </form>
         </Box>
       </Modal>
+
       {/* View Document Modal */}
       <Modal
         open={!!viewDoc}
         onClose={handleCloseViewDoc}
         aria-labelledby="view-document-modal"
-        aria-describedby="view-document-details"
       >
         <Box
           sx={{
@@ -476,11 +732,13 @@ const ArchivalPage: React.FC = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 400,
+            width: 500,
             bgcolor: "background.paper",
             boxShadow: 24,
             p: 4,
             borderRadius: 2,
+            maxHeight: '90vh',
+            overflow: 'auto',
           }}
         >
           <Box
@@ -498,19 +756,33 @@ const ArchivalPage: React.FC = () => {
               <CloseIcon />
             </IconButton>
           </Box>
+          
           {viewDoc && (
             <Box>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Type: {documentTypes.find((t) => t.id === viewDoc.type)?.name}
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                <strong>Document Type:</strong> {viewDoc.documentTypeName}
               </Typography>
-              {Object.entries(viewDoc.fields).map(([field, value]) => (
-                <Typography key={field} variant="body2">
-                  <strong>{field}:</strong> {value}
+              
+              {viewDoc.metadata && Object.entries(viewDoc.metadata).map(([key, value]) => (
+                <Typography key={key} variant="body2" sx={{ mb: 1 }}>
+                  <strong>{key}:</strong> {value?.toString()}
                 </Typography>
               ))}
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2">
-                  <strong>Attachment:</strong> {viewDoc.attachment}
+              
+              <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>File:</strong> {viewDoc.filePath || 'No file attached'}
+                </Typography>
+                {viewDoc.fileSize && (
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Size:</strong> {(viewDoc.fileSize / 1024 / 1024).toFixed(2)} MB
+                  </Typography>
+                )}
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Status:</strong> {viewDoc.status}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Created:</strong> {viewDoc.createdAt ? new Date(viewDoc.createdAt).toLocaleString() : 'Unknown'}
                 </Typography>
               </Box>
             </Box>

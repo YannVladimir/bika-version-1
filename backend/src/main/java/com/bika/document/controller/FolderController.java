@@ -1,121 +1,200 @@
 package com.bika.document.controller;
 
-import com.bika.company.entity.Company;
-import com.bika.company.entity.Department;
-import com.bika.document.entity.Folder;
+import com.bika.common.dto.ErrorResponse;
 import com.bika.document.service.FolderService;
+import com.bika.document.service.DocumentService;
 import com.bika.document.dto.FolderDTO;
+import com.bika.document.dto.DocumentDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/folders")
+@RequestMapping("/v1/folders")
+@RequiredArgsConstructor
+@Tag(name = "Folder", description = "Folder management APIs for document archival")
+@Slf4j
 public class FolderController {
 
     private final FolderService folderService;
+    private final DocumentService documentService;
 
-    @Autowired
-    public FolderController(FolderService folderService) {
-        this.folderService = folderService;
+    @Operation(
+        summary = "Get root folders by company",
+        description = "Retrieve all root folders for a specific company."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Folders retrieved successfully",
+            content = @Content(schema = @Schema(implementation = FolderDTO.class))
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Company not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @GetMapping("/company/{companyId}/root")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
+    public ResponseEntity<List<FolderDTO>> getRootFoldersByCompany(@PathVariable Long companyId) {
+        log.info("FolderController: getRootFoldersByCompany called for companyId: {}", companyId);
+        try {
+            List<FolderDTO> folders = folderService.getRootFoldersByCompany(companyId);
+            log.info("FolderController: Retrieved {} root folders for company {}", folders.size(), companyId);
+            return ResponseEntity.ok(folders);
+        } catch (Exception e) {
+            log.error("FolderController: Error getting root folders by company: {}", companyId, e);
+            throw e;
+        }
     }
 
-    @GetMapping
-    public ResponseEntity<List<FolderDTO>> getAllFolders() {
-        return ResponseEntity.ok(folderService.findAllDTOs());
+    @Operation(
+        summary = "Get folder by ID with contents",
+        description = "Retrieve a folder by its ID including child folders and documents."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Folder retrieved successfully",
+            content = @Content(schema = @Schema(implementation = FolderDTO.class))
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Folder not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @GetMapping("/{id}/contents")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
+    public ResponseEntity<FolderDTO> getFolderContents(@PathVariable Long id) {
+        log.info("FolderController: getFolderContents called for id: {}", id);
+        try {
+            return folderService.findDTOById(id)
+                    .map(folder -> {
+                        // Populate documents for this folder
+                        List<DocumentDTO> documents = folderService.findById(id)
+                                .map(documentService::getDocumentsByFolder)
+                                .orElseThrow(() -> new RuntimeException("Folder not found"));
+                        folder.setDocuments(documents);
+                        
+                        log.info("FolderController: Folder found with ID: {} containing {} documents", id, documents.size());
+                        return ResponseEntity.ok(folder);
+                    })
+                    .orElseGet(() -> {
+                        log.warn("FolderController: Folder not found with ID: {}", id);
+                        return ResponseEntity.notFound().build();
+                    });
+        } catch (Exception e) {
+            log.error("FolderController: Error getting folder contents by id: {}", id, e);
+            throw e;
+        }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<FolderDTO> getFolderById(@PathVariable Long id) {
-        return folderService.findDTOById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/company/{companyId}")
-    public ResponseEntity<List<Folder>> getFoldersByCompany(@PathVariable Long companyId) {
-        Company company = new Company();
-        company.setId(companyId);
-        return ResponseEntity.ok(folderService.findByCompany(company));
-    }
-
-    @GetMapping("/department/{departmentId}")
-    public ResponseEntity<List<Folder>> getFoldersByDepartment(@PathVariable Long departmentId) {
-        Department department = new Department();
-        department.setId(departmentId);
-        return ResponseEntity.ok(folderService.findByDepartment(department));
-    }
-
-    @GetMapping("/parent/{parentId}")
-    public ResponseEntity<List<Folder>> getFoldersByParent(@PathVariable Long parentId) {
-        Folder parent = new Folder();
-        parent.setId(parentId);
-        return ResponseEntity.ok(folderService.findByParent(parent));
-    }
-
-    @GetMapping("/company/{companyId}/path/{path}")
-    public ResponseEntity<Folder> getFolderByCompanyAndPath(
-            @PathVariable Long companyId,
-            @PathVariable String path) {
-        Company company = new Company();
-        company.setId(companyId);
-        Optional<Folder> folder = folderService.findByCompanyAndPath(company, path);
-        return folder.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
+    @Operation(
+        summary = "Create a new folder",
+        description = "Create a new folder in the specified company and parent folder."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "201",
+            description = "Folder created successfully",
+            content = @Content(schema = @Schema(implementation = FolderDTO.class))
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<Folder> createFolder(@Valid @RequestBody Folder folder) {
-        // Set required auditing fields
-        folder.setCreatedBy("system");
-        folder.setUpdatedBy("system");
-        Folder savedFolder = folderService.save(folder);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedFolder);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Folder> updateFolder(
-            @PathVariable Long id,
-            @Valid @RequestBody Folder folder) {
-        Optional<Folder> existingFolder = folderService.findById(id);
-        if (existingFolder.isPresent()) {
-            folder.setId(id);
-            folder.setUpdatedBy("system");
-            Folder updatedFolder = folderService.save(folder);
-            return ResponseEntity.ok(updatedFolder);
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<FolderDTO> createFolder(@Valid @RequestBody FolderDTO folderDTO) {
+        log.info("FolderController: createFolder called for name: {}", folderDTO.getName());
+        try {
+            FolderDTO result = folderService.createFolder(folderDTO);
+            log.info("FolderController: Folder created successfully with ID: {}", result.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        } catch (Exception e) {
+            log.error("FolderController: Error creating folder", e);
+            throw e;
         }
-        return ResponseEntity.notFound().build();
     }
 
+    @Operation(
+        summary = "Get folder by ID",
+        description = "Retrieve a folder by its ID."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Folder retrieved successfully",
+            content = @Content(schema = @Schema(implementation = FolderDTO.class))
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Folder not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
+    public ResponseEntity<FolderDTO> getFolderById(@PathVariable Long id) {
+        log.info("FolderController: getFolderById called for id: {}", id);
+        try {
+            return folderService.findDTOById(id)
+                    .map(folder -> {
+                        log.info("FolderController: Folder found with ID: {}", id);
+                        return ResponseEntity.ok(folder);
+                    })
+                    .orElseGet(() -> {
+                        log.warn("FolderController: Folder not found with ID: {}", id);
+                        return ResponseEntity.notFound().build();
+                    });
+        } catch (Exception e) {
+            log.error("FolderController: Error getting folder by id: {}", id, e);
+            throw e;
+        }
+    }
+
+    @Operation(
+        summary = "Delete folder",
+        description = "Delete a folder by its ID."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "204",
+            description = "Folder deleted successfully"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Folder not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<Void> deleteFolder(@PathVariable Long id) {
-        Optional<Folder> folder = folderService.findById(id);
-        if (folder.isPresent()) {
+        log.info("FolderController: deleteFolder called for id: {}", id);
+        try {
             folderService.deleteById(id);
+            log.info("FolderController: Folder deleted successfully with ID: {}", id);
             return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("FolderController: Error deleting folder with id: {}", id, e);
+            throw e;
         }
-        return ResponseEntity.notFound().build();
-    }
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<Folder> updateFolderStatus(
-            @PathVariable Long id,
-            @RequestParam boolean active) {
-        Optional<Folder> folderOpt = folderService.findById(id);
-        if (folderOpt.isPresent()) {
-            Folder folder = folderOpt.get();
-            folder.setActive(active);
-            folder.setUpdatedBy("system");
-            Folder updatedFolder = folderService.save(folder);
-            return ResponseEntity.ok(updatedFolder);
-        }
-        return ResponseEntity.notFound().build();
     }
 } 

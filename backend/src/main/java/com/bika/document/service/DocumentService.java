@@ -10,30 +10,27 @@ import com.bika.document.repository.DocumentRepository;
 import com.bika.document.repository.DocumentTypeRepository;
 import com.bika.document.dto.DocumentDTO;
 import com.bika.common.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final DocumentTypeRepository documentTypeRepository;
     private final DepartmentService departmentService;
-
-    @Autowired
-    public DocumentService(
-            DocumentRepository documentRepository,
-            DocumentTypeRepository documentTypeRepository,
-            DepartmentService departmentService) {
-        this.documentRepository = documentRepository;
-        this.documentTypeRepository = documentTypeRepository;
-        this.departmentService = departmentService;
-    }
+    private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
     public List<Document> findAll() {
@@ -153,12 +150,40 @@ public class DocumentService {
     }
 
     public DocumentDTO toDTO(Document document) {
+        Map<String, Object> metadata = parseMetadata(document.getMetadata());
+        
         return DocumentDTO.builder()
                 .id(document.getId())
                 .name(document.getName())
-                .documentTypeId(document.getDocumentType() != null ? document.getDocumentType().getId() : null)
+                .code(document.getCode())
+                .companyId(document.getCompany().getId())
                 .departmentId(document.getDepartment() != null ? document.getDepartment().getId() : null)
+                .folderId(document.getFolder() != null ? document.getFolder().getId() : null)
+                .documentTypeId(document.getDocumentType() != null ? document.getDocumentType().getId() : null)
+                .documentTypeName(document.getDocumentType() != null ? document.getDocumentType().getName() : null)
+                .filePath(document.getFilePath())
+                .fileSize(document.getFileSize())
+                .mimeType(document.getMimeType())
+                .metadata(metadata)
+                .status(document.getStatus())
+                .physicalLocation(document.getPhysicalLocation())
                 .isActive(document.getStatus() == Document.DocumentStatus.ACTIVE)
+                .createdAt(document.getCreatedAt() != null ? 
+                    document.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null)
+                .updatedAt(document.getUpdatedAt() != null ? 
+                    document.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null)
+                .createdBy(document.getCreatedBy())
                 .build();
+    }
+
+    private Map<String, Object> parseMetadata(String metadataJson) {
+        try {
+            if (metadataJson == null || metadataJson.trim().isEmpty()) {
+                return new HashMap<>();
+            }
+            return objectMapper.readValue(metadataJson, Map.class);
+        } catch (JsonProcessingException e) {
+            return new HashMap<>();
+        }
     }
 } 
