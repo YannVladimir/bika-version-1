@@ -123,7 +123,6 @@ public class DocumentControllerIntegrationTest {
                 .code("TDT" + uniqueSuffix)
                 .description("Test Document Type Description")
                 .company(testCompany)
-                .metadataSchema("{\"properties\":{\"title\":{\"type\":\"string\"}}}")
                 .active(true)
                 .createdBy("test-user")
                 .updatedBy("test-user")

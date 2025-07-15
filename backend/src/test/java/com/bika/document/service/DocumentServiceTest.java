@@ -88,7 +88,6 @@ class DocumentServiceTest {
                 .active(documentTypeDTO.getIsActive())
                 .company(companyService.findEntityById(companyDTO.getId())
                     .orElseThrow(() -> new RuntimeException("Company not found")))
-                .metadataSchema("{\"type\": \"object\", \"properties\": {}}")
                 .build();
         documentType = documentTypeRepository.save(documentType);
         documentTypeDTO.setId(documentType.getId());

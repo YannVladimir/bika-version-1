@@ -5,6 +5,7 @@ com\bika\audit\repository\AuditLogAuditRepository.class
 com\bika\company\service\CompanyService.class
 com\bika\document\entity\AuditLog$AuditLogBuilder.class
 com\bika\document\service\FolderService.class
+com\bika\document\service\DocumentFieldService.class
 com\bika\security\dto\LoginResponse.class
 com\bika\config\JpaAuditingConfig.class
 com\bika\document\dto\DocumentDTO.class
@@ -47,9 +48,12 @@ com\bika\user\entity\User$UserBuilderImpl.class
 com\bika\document\entity\Document$DocumentBuilderImpl.class
 com\bika\user\dto\UserDTO$UserDTOBuilder.class
 com\bika\task\dto\TaskDTO.class
+com\bika\document\entity\DocumentField$DocumentFieldBuilder.class
 com\bika\security\dto\RegisterResponse$RegisterResponseBuilder.class
 com\bika\company\repository\CompanyRepository.class
 com\bika\document\dto\CreateDocumentRequest$CreateDocumentRequestBuilder.class
+com\bika\document\dto\DocumentFieldDTO.class
+com\bika\document\repository\DocumentFieldRepository.class
 com\bika\company\repository\DepartmentRepository.class
 com\bika\document\controller\AuditLogController.class
 com\bika\user\entity\User$UserBuilder.class
@@ -87,6 +91,7 @@ com\bika\document\service\DocumentService.class
 com\bika\user\dto\CreateUserRequest$CreateUserRequestBuilder.class
 com\bika\company\service\DepartmentService.class
 com\bika\security\dto\AuthenticationResponse$AuthenticationResponseBuilder.class
+com\bika\document\entity\DocumentField$FieldType.class
 com\bika\document\repository\DocumentTypeRepository.class
 com\bika\project\entity\Project$ProjectBuilder.class
 com\bika\util\PasswordTest.class
@@ -103,9 +108,12 @@ com\bika\company\entity\Company$CompanyBuilder.class
 com\bika\document\entity\AuditLog.class
 com\bika\security\dto\LoginRequest$LoginRequestBuilder.class
 com\bika\document\dto\FolderDTO$FolderDTOBuilder.class
+com\bika\document\dto\DocumentFieldDTO$DocumentFieldDTOBuilder.class
+com\bika\document\entity\DocumentField$DocumentFieldBuilderImpl.class
 com\bika\company\dto\CompanyDTO.class
 com\bika\security\dto\RegisterRequest$RegisterRequestBuilder.class
 com\bika\document\dto\CreateDocumentRequest.class
+com\bika\document\entity\DocumentField.class
 com\bika\document\entity\DocumentType$DocumentTypeBuilderImpl.class
 com\bika\document\controller\FolderController.class
 com\bika\util\FindPassword.class

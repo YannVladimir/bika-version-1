@@ -33,8 +33,10 @@ public class DocumentType extends BaseEntity {
     @Column
     private String description;
     
-    @Column(name = "metadata_schema", nullable = false, columnDefinition = "jsonb")
-    private String metadataSchema;
+    @OneToMany(mappedBy = "documentType", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("documentType")
+    @OrderBy("displayOrder ASC")
+    private List<DocumentField> fields = new ArrayList<>();
     
     @OneToMany(mappedBy = "documentType")
     @JsonIgnoreProperties({"company", "department", "folder", "documentType"})

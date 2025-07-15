@@ -14,6 +14,7 @@ import {
   Dashboard as DashboardIcon,
   Business as CompanyIcon,
   People as UsersIcon,
+  AccountTree as DepartmentIcon,
   Description as DocumentIcon,
   Archive as ArchiveIcon,
   Assessment as ReportsIcon,
@@ -90,6 +91,12 @@ const allMenuItems: MenuItem[] = [
     text: "Users & Roles", 
     icon: <UsersIcon />, 
     path: "/users", 
+    roles: ["SUPER_ADMIN", "COMPANY_ADMIN"] 
+  },
+  { 
+    text: "Departments", 
+    icon: <DepartmentIcon />, 
+    path: "/departments", 
     roles: ["SUPER_ADMIN", "COMPANY_ADMIN"] 
   },
   { 

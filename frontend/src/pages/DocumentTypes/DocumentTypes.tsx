@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Paper,
   Button,
   Grid,
   Card,
@@ -25,6 +24,8 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Divider,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -33,79 +34,60 @@ import {
   AddCircle as AddCircleIcon,
 } from "@mui/icons-material";
 import { tokens } from "../../theme/theme";
-
-// Types
-interface Field {
-  id: number;
-  name: string;
-  type: string;
-  required: boolean;
-  options?: string[];
-}
-
-interface DocumentType {
-  id: number;
-  name: string;
-  description: string;
-  fields: Field[];
-}
-
-// Mock data
-const mockDocumentTypes: DocumentType[] = [
-  {
-    id: 1,
-    name: "Expenses",
-    description: "Document type for tracking company expenses",
-    fields: [
-      { id: 1, name: "Amount", type: "number", required: true },
-      { id: 2, name: "Date", type: "date", required: true },
-      {
-        id: 3,
-        name: "Category",
-        type: "select",
-        required: true,
-        options: ["Travel", "Office", "Equipment"],
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "Sales",
-    description: "Document type for sales records",
-    fields: [
-      { id: 1, name: "Customer Name", type: "string", required: true },
-      { id: 2, name: "Total Amount", type: "number", required: true },
-      {
-        id: 3,
-        name: "Payment Method",
-        type: "select",
-        required: true,
-        options: ["Cash", "Credit Card", "Bank Transfer"],
-      },
-    ],
-  },
-];
+import { useAuth } from "../../context/AuthContext";
+import { documentTypeService, DocumentType, DocumentField, FieldType } from "../../services/api";
 
 const DocumentTypesPage: React.FC = () => {
-  const [documentTypes, setDocumentTypes] =
-    useState<DocumentType[]>(mockDocumentTypes);
+  const { user } = useAuth();
+  
+  // State
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingDocType, setEditingDocType] = useState<DocumentType | null>(
-    null
-  );
-  const [newField, setNewField] = useState<Partial<Field>>({
+  const [editingDocType, setEditingDocType] = useState<DocumentType | null>(null);
+  const [newField, setNewField] = useState<Partial<DocumentField>>({
     name: "",
-    type: "string",
+    fieldType: "TEXT",
     required: false,
   });
   const [newOption, setNewOption] = useState("");
 
+  // Load document types on component mount
+  useEffect(() => {
+    loadDocumentTypes();
+  }, [user]);
+
+  const loadDocumentTypes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (user?.companyId) {
+        const data = await documentTypeService.getDocumentTypesByCompany(user.companyId);
+        setDocumentTypes(data);
+      }
+    } catch (err: any) {
+      console.error('Error loading document types:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to load document types');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateNew = () => {
+    if (!user?.companyId) {
+      setError('Company information is required');
+      return;
+    }
+    
     setEditingDocType({
-      id: Date.now(),
       name: "",
+      code: "",
       description: "",
+      companyId: user.companyId,
       fields: [],
+      isActive: true,
     });
     setOpenDialog(true);
   };
@@ -115,84 +97,149 @@ const DocumentTypesPage: React.FC = () => {
     setOpenDialog(true);
   };
 
-  const handleSave = () => {
-    if (editingDocType) {
+  const handleSave = async () => {
+    if (!editingDocType) return;
+    
+    try {
+      setError(null);
+      
+      // Basic validation
+      if (!editingDocType.name.trim()) {
+        setError('Document type name is required');
+        return;
+      }
+      
+      if (!editingDocType.code.trim()) {
+        setError('Document type code is required');
+        return;
+      }
+
+      // Ensure display order is set for fields
+      const fieldsWithOrder = editingDocType.fields.map((field, index) => ({
+        ...field,
+        displayOrder: field.displayOrder || index + 1,
+        fieldKey: field.fieldKey || documentTypeService.generateFieldKey(field.name),
+      }));
+
+      const documentTypeData = {
+        ...editingDocType,
+        fields: fieldsWithOrder,
+      };
+
       if (editingDocType.id) {
         // Update existing
-        setDocumentTypes(
-          documentTypes.map((dt) =>
-            dt.id === editingDocType.id ? editingDocType : dt
-          )
-        );
+        await documentTypeService.updateDocumentType(editingDocType.id, documentTypeData);
       } else {
         // Create new
-        setDocumentTypes([...documentTypes, editingDocType]);
+        await documentTypeService.createDocumentType(documentTypeData);
+      }
+      
+      setOpenDialog(false);
+      setEditingDocType(null);
+      await loadDocumentTypes();
+    } catch (err: any) {
+      console.error('Error saving document type:', err);
+      setError(err.response?.data?.message || 'Failed to save document type');
+    }
+  };
+
+  const handleDelete = async (docType: DocumentType) => {
+    if (!docType.id) return;
+    
+    if (window.confirm(`Are you sure you want to delete "${docType.name}"?`)) {
+      try {
+        await documentTypeService.deleteDocumentType(docType.id);
+        await loadDocumentTypes();
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to delete document type');
       }
     }
-    setOpenDialog(false);
-    setEditingDocType(null);
   };
 
   const handleAddField = () => {
     if (editingDocType && newField.name) {
+      const field: DocumentField = {
+        name: newField.name,
+        fieldKey: documentTypeService.generateFieldKey(newField.name),
+        fieldType: newField.fieldType || "TEXT",
+        required: newField.required || false,
+        description: newField.description,
+        active: true,
+        displayOrder: editingDocType.fields.length + 1,
+        options: newField.fieldType === "SELECT" ? [] : undefined,
+      };
+
       setEditingDocType({
         ...editingDocType,
-        fields: [
-          ...editingDocType.fields,
-          {
-            id: Date.now(),
-            name: newField.name,
-            type: newField.type || "string",
-            required: newField.required || false,
-            options: newField.type === "select" ? [] : undefined,
-          },
-        ],
+        fields: [...editingDocType.fields, field],
       });
-      setNewField({ name: "", type: "string", required: false });
+      
+      setNewField({ name: "", fieldType: "TEXT", required: false });
     }
   };
 
-  const handleAddOption = (fieldId: number) => {
-    if (editingDocType && newOption) {
+  const handleAddOption = (fieldIndex: number) => {
+    if (editingDocType && newOption.trim()) {
+      const updatedFields = [...editingDocType.fields];
+      const field = updatedFields[fieldIndex];
+      
+      if (field.options) {
+        field.options = [...field.options, newOption.trim()];
+      } else {
+        field.options = [newOption.trim()];
+      }
+
       setEditingDocType({
         ...editingDocType,
-        fields: editingDocType.fields.map((field) =>
-          field.id === fieldId
-            ? {
-                ...field,
-                options: [...(field.options || []), newOption],
-              }
-            : field
-        ),
+        fields: updatedFields,
       });
+      
       setNewOption("");
     }
   };
 
-  const handleDeleteField = (fieldId: number) => {
+  const handleDeleteField = (fieldIndex: number) => {
     if (editingDocType) {
+      const updatedFields = editingDocType.fields.filter((_, index) => index !== fieldIndex);
       setEditingDocType({
         ...editingDocType,
-        fields: editingDocType.fields.filter((field) => field.id !== fieldId),
+        fields: updatedFields,
       });
     }
   };
 
-  const handleDeleteOption = (fieldId: number, option: string) => {
+  const handleDeleteOption = (fieldIndex: number, option: string) => {
     if (editingDocType) {
+      const updatedFields = [...editingDocType.fields];
+      const field = updatedFields[fieldIndex];
+      
+      if (field.options) {
+        field.options = field.options.filter(opt => opt !== option);
+      }
+
       setEditingDocType({
         ...editingDocType,
-        fields: editingDocType.fields.map((field) =>
-          field.id === fieldId
-            ? {
-                ...field,
-                options: field.options?.filter((opt) => opt !== option),
-              }
-            : field
-        ),
+        fields: updatedFields,
       });
     }
   };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingDocType(null);
+    setNewField({ name: "", fieldType: "TEXT", required: false });
+    setNewOption("");
+    setError(null);
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+        <Typography variant="h6" sx={{ ml: 2 }}>Loading document types...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box width="100%" boxSizing="border-box" p={3}>
@@ -216,69 +263,93 @@ const DocumentTypesPage: React.FC = () => {
         </Button>
       </Box>
 
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       <Grid container spacing={3}>
-        {documentTypes.map((docType) => (
-          <Grid item xs={12} md={6} lg={4} key={docType.id}>
-            <Card
-              elevation={3}
-              sx={{
-                background: `linear-gradient(135deg, ${tokens.primary.light} 0%, ${tokens.secondary.light} 100%)`,
-                color: tokens.grey[900],
-                borderRadius: 3,
-                height: "100%",
-                boxShadow: "0 4px 24px 0 rgba(0,0,0,0.07)",
-                transition: "transform 0.2s",
-                "&:hover": {
-                  transform: "translateY(-4px) scale(1.02)",
-                  boxShadow: "0 8px 32px 0 rgba(0,0,0,0.12)",
-                },
-              }}
-            >
-              <CardContent>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <Typography variant="h6" fontWeight={600}>
-                    {docType.name}
-                  </Typography>
-                  <IconButton
-                    onClick={() => handleEdit(docType)}
-                    color="primary"
-                  >
-                    <EditIcon />
-                  </IconButton>
-                </Box>
-                <Typography variant="body2" color="text.primary" mb={2}>
-                  {docType.description}
-                </Typography>
-                {/* Fields are hidden on the card, only shown in edit dialog */}
-              </CardContent>
-            </Card>
+        {documentTypes.length === 0 ? (
+          <Grid item xs={12}>
+            <Typography variant="body1" color="text.secondary" align="center" sx={{ py: 4 }}>
+              No document types found. Create your first document type to get started.
+            </Typography>
           </Grid>
-        ))}
+        ) : (
+          documentTypes.map((docType) => (
+            <Grid item xs={12} md={6} lg={4} key={docType.id}>
+              <Card
+                elevation={3}
+                sx={{
+                  background: `linear-gradient(135deg, ${tokens.primary.light} 0%, ${tokens.secondary.light} 100%)`,
+                  color: tokens.grey[900],
+                  borderRadius: 3,
+                  height: "100%",
+                  boxShadow: "0 4px 24px 0 rgba(0,0,0,0.07)",
+                  transition: "transform 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-4px) scale(1.02)",
+                    boxShadow: "0 8px 32px 0 rgba(0,0,0,0.12)",
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mb={2}
+                  >
+                    <Typography variant="h6" fontWeight={600}>
+                      {docType.name}
+                    </Typography>
+                    <Box>
+                      <IconButton
+                        onClick={() => handleEdit(docType)}
+                        color="primary"
+                        size="small"
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(docType)}
+                        color="error"
+                        size="small"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                  <Typography variant="body2" color="text.primary" mb={2}>
+                    {docType.description || 'No description'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Code: {docType.code}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    Fields: {docType.fields?.length || 0}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        )}
       </Grid>
 
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
+      {/* Create/Edit Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingDocType?.id
-            ? "Edit Document Type"
-            : "Create New Document Type"}
+          {editingDocType?.id ? "Edit Document Type" : "Create New Document Type"}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   label="Document Type Name"
                   fullWidth
+                  required
                   value={editingDocType?.name || ""}
                   onChange={(e) =>
                     setEditingDocType(
@@ -287,6 +358,22 @@ const DocumentTypesPage: React.FC = () => {
                         : null
                     )
                   }
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Code"
+                  fullWidth
+                  required
+                  value={editingDocType?.code || ""}
+                  onChange={(e) =>
+                    setEditingDocType(
+                      editingDocType
+                        ? { ...editingDocType, code: e.target.value }
+                        : null
+                    )
+                  }
+                  helperText="Unique identifier for the document type"
                 />
               </Grid>
               <Grid item xs={12}>
@@ -306,32 +393,32 @@ const DocumentTypesPage: React.FC = () => {
                 />
               </Grid>
 
-              {/* Fields only shown in dialog */}
+              {/* Fields Section */}
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom>
                   Fields
                 </Typography>
                 <List>
-                  {editingDocType?.fields.map((field) => (
-                    <React.Fragment key={field.id}>
+                  {editingDocType?.fields.map((field, fieldIndex) => (
+                    <React.Fragment key={fieldIndex}>
                       <ListItem>
                         <ListItemText
                           primary={field.name}
-                          secondary={`${field.type} ${
+                          secondary={`${field.fieldType.toLowerCase()} ${
                             field.required ? "(Required)" : ""
                           }`}
                         />
                         <ListItemSecondaryAction>
                           <IconButton
                             edge="end"
-                            onClick={() => handleDeleteField(field.id)}
+                            onClick={() => handleDeleteField(fieldIndex)}
                             color="error"
                           >
                             <DeleteIcon />
                           </IconButton>
                         </ListItemSecondaryAction>
                       </ListItem>
-                      {field.type === "select" && (
+                      {field.fieldType === "SELECT" && (
                         <Box sx={{ pl: 4, pr: 2, pb: 2 }}>
                           <Box display="flex" gap={1} mb={1}>
                             <TextField
@@ -343,7 +430,7 @@ const DocumentTypesPage: React.FC = () => {
                             <Button
                               variant="outlined"
                               color="primary"
-                              onClick={() => handleAddOption(field.id)}
+                              onClick={() => handleAddOption(fieldIndex)}
                               disabled={!newOption}
                             >
                               Add
@@ -355,7 +442,7 @@ const DocumentTypesPage: React.FC = () => {
                                 key={option}
                                 label={option}
                                 onDelete={() =>
-                                  handleDeleteOption(field.id, option)
+                                  handleDeleteOption(fieldIndex, option)
                                 }
                                 color="secondary"
                               />
@@ -368,6 +455,7 @@ const DocumentTypesPage: React.FC = () => {
                   ))}
                 </List>
 
+                {/* Add New Field */}
                 <Box
                   sx={{ mt: 2, p: 2, border: `1px dashed ${tokens.grey[300]}` }}
                 >
@@ -389,17 +477,21 @@ const DocumentTypesPage: React.FC = () => {
                       <FormControl fullWidth>
                         <InputLabel>Type</InputLabel>
                         <Select
-                          value={newField.type}
+                          value={newField.fieldType}
                           label="Type"
                           onChange={(e) =>
-                            setNewField({ ...newField, type: e.target.value })
+                            setNewField({ ...newField, fieldType: e.target.value as FieldType })
                           }
                         >
-                          <MenuItem value="string">Text</MenuItem>
-                          <MenuItem value="number">Number</MenuItem>
-                          <MenuItem value="date">Date</MenuItem>
-                          <MenuItem value="select">Select</MenuItem>
-                          <MenuItem value="textarea">Text Area</MenuItem>
+                          <MenuItem value="TEXT">Text</MenuItem>
+                          <MenuItem value="TEXTAREA">Text Area</MenuItem>
+                          <MenuItem value="NUMBER">Number</MenuItem>
+                          <MenuItem value="DATE">Date</MenuItem>
+                          <MenuItem value="SELECT">Select</MenuItem>
+                          <MenuItem value="CHECKBOX">Checkbox</MenuItem>
+                          <MenuItem value="EMAIL">Email</MenuItem>
+                          <MenuItem value="PHONE">Phone</MenuItem>
+                          <MenuItem value="URL">URL</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -438,14 +530,14 @@ const DocumentTypesPage: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="inherit">
+          <Button onClick={handleCloseDialog} color="inherit">
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             variant="contained"
             color="primary"
-            disabled={!editingDocType?.name}
+            disabled={!editingDocType?.name || !editingDocType?.code}
             startIcon={<EditIcon />}
           >
             Save

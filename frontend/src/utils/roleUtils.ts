@@ -57,6 +57,7 @@ export const canAccessRoute = (userRole: string | undefined, routePath: string):
     '/dashboard': ['SUPER_ADMIN', 'COMPANY_ADMIN', 'MANAGER', 'USER'],
     '/companies': ['SUPER_ADMIN'],
     '/users': ['SUPER_ADMIN', 'COMPANY_ADMIN'],
+    '/departments': ['SUPER_ADMIN', 'COMPANY_ADMIN'],
     '/document-types': ['COMPANY_ADMIN', 'MANAGER', 'USER'],
     '/archival': ['COMPANY_ADMIN', 'MANAGER', 'USER'],
     '/retrieval': ['COMPANY_ADMIN', 'MANAGER', 'USER'],

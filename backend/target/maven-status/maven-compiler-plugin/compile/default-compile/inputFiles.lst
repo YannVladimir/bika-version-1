@@ -1,3 +1,4 @@
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\service\DocumentFieldService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\service\ElasticsearchService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\repository\FolderRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\controller\TaskController.java
@@ -5,7 +6,9 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\controller\ProjectController.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\dto\ErrorResponse.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\config\OpenApiConfig.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\repository\DocumentFieldRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\entity\User.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\DocumentField.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\dto\DocumentStatsDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\dto\TaskDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\RegisterRequest.java
@@ -66,6 +69,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\ser
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\Folder.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\service\AuditLogService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\GlobalExceptionHandler.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\DocumentFieldDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\LoginRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\repository\UserRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\dto\UserStatsDTO.java

@@ -32,7 +32,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   email: string;
-  role: string;
+  role: UserRole;
   id: number;
   firstName: string;
   lastName: string;
@@ -43,7 +43,7 @@ export interface LoginResponse {
 export interface RegisterResponse {
   token: string;
   email: string;
-  role: string;
+  role: UserRole;
   id: number;
   firstName: string;
   lastName: string;
@@ -121,6 +121,25 @@ export interface CreateCompanyRequest {
 }
 
 // Document types
+
+// Field types for document type fields
+export type FieldType = 'TEXT' | 'TEXTAREA' | 'NUMBER' | 'DATE' | 'SELECT' | 'CHECKBOX' | 'EMAIL' | 'PHONE' | 'URL';
+
+// Document field interface
+export interface DocumentField {
+  id?: number;
+  name: string;
+  fieldKey: string;
+  fieldType: FieldType;
+  required: boolean;
+  description?: string;
+  defaultValue?: string;
+  validationRules?: string;
+  options?: string[];
+  displayOrder?: number;
+  active: boolean;
+}
+
 export interface Document {
   id: number;
   name: string;
@@ -133,9 +152,11 @@ export interface Document {
 }
 
 export interface DocumentType {
-  id: number;
+  id?: number;
   name: string;
+  code: string;
   description?: string;
-  retentionPeriod: number;
+  companyId: number;
+  fields: DocumentField[];
   isActive: boolean;
 } 

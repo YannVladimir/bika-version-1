@@ -5,6 +5,7 @@ import { CssBaseline } from "@mui/material";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Companies from "./pages/Companies/Companies";
 import Users from "./pages/Users/Users";
+import Departments from "./pages/Departments/Departments";
 import DocumentTypes from "./pages/DocumentTypes/DocumentTypes";
 import ArchivalPage from "./pages/Archival/ArchivalPage";
 import Reports from "./pages/Reports/ReportsPage";
@@ -51,6 +52,14 @@ const router = createBrowserRouter(
         {
           path: "users",
           element: <Users />,
+        },
+        {
+          path: "departments",
+          element: (
+            <ProtectedRoute requiredRoles={["SUPER_ADMIN", "COMPANY_ADMIN"]}>
+              <Departments />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "document-types",
