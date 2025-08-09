@@ -201,6 +201,27 @@ export interface CreateFolderRequest {
   departmentId?: number;
 }
 
+// Physical storage structure for frontend
+export interface PhysicalStorage {
+  room: string;
+  cupboard: string;
+  drawer: string;
+  fileNumber: string;
+  fileColor: string;
+  documentNumber: string;
+  fileSection: string;
+  sectionColor: string;
+  fileName?: string;
+  uploadTime?: string;
+}
+
+// Physical storage lookup data
+export interface PhysicalStorageLookup {
+  rooms: string[];
+  fileColors: string[];
+  sectionColors: string[];
+}
+
 export interface DocumentType {
   id?: number;
   name: string;

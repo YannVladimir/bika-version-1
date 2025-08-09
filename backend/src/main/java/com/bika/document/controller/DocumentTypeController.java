@@ -135,7 +135,7 @@ public class DocumentTypeController {
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<DocumentTypeDTO> createDocumentType(@Valid @RequestBody DocumentTypeDTO documentTypeDTO) {
         log.info("DocumentTypeController: createDocumentType called for name: {}", documentTypeDTO.getName());
         try {
@@ -170,7 +170,7 @@ public class DocumentTypeController {
         )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<DocumentTypeDTO> updateDocumentType(
             @PathVariable Long id,
             @Valid @RequestBody DocumentTypeDTO documentTypeDTO) {
@@ -201,7 +201,7 @@ public class DocumentTypeController {
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<Void> deleteDocumentType(@PathVariable Long id) {
         log.info("DocumentTypeController: deleteDocumentType called for id: {}", id);
         try {

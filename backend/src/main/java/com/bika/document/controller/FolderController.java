@@ -82,7 +82,7 @@ public class FolderController {
     public ResponseEntity<FolderDTO> getFolderContents(@PathVariable Long id) {
         log.info("FolderController: getFolderContents called for id: {}", id);
         try {
-            return folderService.findDTOById(id)
+        return folderService.findDTOById(id)
                     .map(folder -> {
                         // Populate documents for this folder
                         List<DocumentDTO> documents = folderService.findById(id)

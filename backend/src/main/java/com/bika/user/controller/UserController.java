@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import com.bika.user.dto.ChangePasswordRequest;
 
 @RestController
 @RequestMapping("/v1/users")  // Updated to match the pattern used in CompanyController
@@ -353,6 +354,35 @@ public class UserController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error("UserController: Error deleting user with id: {}", id, e);
+            throw e;
+        }
+    }
+
+    @Operation(
+        summary = "Change user password",
+        description = "Change the current authenticated user's password."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Password changed successfully"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request or incorrect current password",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @PostMapping("/change-password")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        log.info("UserController: changePassword called");
+        try {
+            userService.changePassword(request);
+            log.info("UserController: Password changed successfully");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("UserController: Error changing password", e);
             throw e;
         }
     }

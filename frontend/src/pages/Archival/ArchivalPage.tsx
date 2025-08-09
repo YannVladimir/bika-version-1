@@ -24,15 +24,12 @@ import {
 } from "@mui/icons-material";
 import { tokens } from "../../theme/theme";
 import { useAuth } from "../../context/AuthContext";
+import { Document, Folder, DocumentType, CreateDocumentRequest } from "../../services/api/types";
+import documentService from "../../services/api/documentService";
 import { 
   folderService, 
-  documentService, 
   documentTypeService,
-  Folder, 
-  Document, 
-  DocumentType, 
-  CreateFolderRequest, 
-  CreateDocumentRequest 
+  CreateFolderRequest 
 } from "../../services/api";
 
 // Helper function to find folder by path
@@ -74,6 +71,18 @@ const ArchivalPage: React.FC = () => {
   const [newFolderDescription, setNewFolderDescription] = useState("");
   const [documentName, setDocumentName] = useState("");
   const [documentCode, setDocumentCode] = useState("");
+  
+  // Physical storage metadata states
+  const [physicalStorage, setPhysicalStorage] = useState({
+    room: "",
+    cupboard: "",
+    drawer: "",
+    fileNumber: "",
+    fileColor: "",
+    documentNumber: "",
+    fileSection: "",
+    sectionColor: ""
+  });
   
   // Loading and error states
   const [loading, setLoading] = useState(true);
@@ -126,6 +135,16 @@ const ArchivalPage: React.FC = () => {
     setAttachment(null);
     setDocumentName("");
     setDocumentCode("");
+    setPhysicalStorage({
+      room: "",
+      cupboard: "",
+      drawer: "",
+      fileNumber: "",
+      fileColor: "",
+      documentNumber: "",
+      fileSection: "",
+      sectionColor: ""
+    });
   };
 
   // Folder navigation
@@ -247,6 +266,10 @@ const ArchivalPage: React.FC = () => {
     setDocFields(prev => ({ ...prev, [fieldKey]: value }));
   };
 
+  const handlePhysicalStorageChange = (field: string, value: string) => {
+    setPhysicalStorage(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setAttachment(event.target.files[0]);
@@ -255,13 +278,23 @@ const ArchivalPage: React.FC = () => {
 
   const handleUpload = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!selectedType || !user?.companyId || !documentName.trim() || !documentCode.trim()) return;
+    
+    // Validate required fields including physical storage
+    const requiredPhysicalFields = ['room', 'cupboard', 'drawer', 'fileNumber', 'fileColor', 'documentNumber', 'fileSection', 'sectionColor'];
+    const missingPhysicalFields = requiredPhysicalFields.filter(field => !physicalStorage[field as keyof typeof physicalStorage].trim());
+    
+    if (!selectedType || !user?.companyId || !documentName.trim() || !documentCode.trim() || missingPhysicalFields.length > 0) {
+      if (missingPhysicalFields.length > 0) {
+        setError(`Please fill in all physical storage fields: ${missingPhysicalFields.join(', ')}`);
+      }
+      return;
+    }
     
     try {
       setUploadLoading(true);
       setError(null);
       
-      // Create document request with user-provided code
+      // Create document request with user-provided code and physical storage
       let documentRequest: CreateDocumentRequest = {
         name: documentName,
         code: documentCode,
@@ -271,11 +304,14 @@ const ArchivalPage: React.FC = () => {
         folderId: currentFolder?.id,
         fieldValues: docFields,
         status: 'ACTIVE',
+        physicalLocation: JSON.stringify(physicalStorage),
       };
       
       // Add file information if attachment is provided
       if (attachment) {
         documentRequest = documentService.prepareDocumentForUpload(documentRequest, attachment);
+        // Preserve physical storage data when adding file info
+        documentRequest.physicalLocation = JSON.stringify(physicalStorage);
       }
       
       const newDocument = await documentService.createDocument(documentRequest);
@@ -441,12 +477,13 @@ const ArchivalPage: React.FC = () => {
                   p: 2,
                   cursor: "pointer",
                   "&:hover": { backgroundColor: tokens.grey[200] },
+                  position: 'relative',
                 }}
                 onClick={() => handleViewDoc(doc)}
               >
                 <Box display="flex" alignItems="center" gap={2}>
                   <FileIcon sx={{ color: tokens.primary.main }} />
-                  <Box>
+                  <Box flex={1}>
                     <Typography>{doc.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       {doc.documentTypeName}
@@ -456,6 +493,30 @@ const ArchivalPage: React.FC = () => {
                         {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
                       </Typography>
                     )}
+                    {/* Physical Storage Preview */}
+                    {doc.physicalLocation && (() => {
+                      try {
+                        const physicalData = JSON.parse(doc.physicalLocation);
+                        return (
+                          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                              📍 {physicalData.room || 'Unknown Room'}
+                            </Typography>
+                            {physicalData.fileColor && (
+                              <Box sx={{ 
+                                width: 12, 
+                                height: 12, 
+                                bgcolor: physicalData.fileColor?.toLowerCase() || 'grey', 
+                                borderRadius: '50%',
+                                border: '1px solid #ccc'
+                              }} />
+                            )}
+                          </Box>
+                        );
+                      } catch (e) {
+                        return null;
+                      }
+                    })()}
                   </Box>
                 </Box>
               </Paper>
@@ -666,6 +727,110 @@ const ArchivalPage: React.FC = () => {
               </TextField>
             ))}
             
+            {/* Physical Storage Fields */}
+            <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>Physical Storage</Typography>
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Room"
+                  value={physicalStorage.room}
+                  onChange={(e) => handlePhysicalStorageChange('room', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.room.trim()}
+                  helperText={!physicalStorage.room.trim() ? "Room is required" : ""}
+                  placeholder="Enter room name (e.g., Room 101, Main Office, etc.)"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Cupboard / Cabinet"
+                  value={physicalStorage.cupboard}
+                  onChange={(e) => handlePhysicalStorageChange('cupboard', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.cupboard.trim()}
+                  helperText={!physicalStorage.cupboard.trim() ? "Cupboard is required" : ""}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Drawer"
+                  value={physicalStorage.drawer}
+                  onChange={(e) => handlePhysicalStorageChange('drawer', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.drawer.trim()}
+                  helperText={!physicalStorage.drawer.trim() ? "Drawer is required" : ""}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="File Number"
+                  value={physicalStorage.fileNumber}
+                  onChange={(e) => handlePhysicalStorageChange('fileNumber', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.fileNumber.trim()}
+                  helperText={!physicalStorage.fileNumber.trim() ? "File number is required" : ""}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="File Color"
+                  value={physicalStorage.fileColor}
+                  onChange={(e) => handlePhysicalStorageChange('fileColor', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.fileColor.trim()}
+                  helperText={!physicalStorage.fileColor.trim() ? "File color is required" : ""}
+                  placeholder="Enter file color (e.g., Blue, Red, Green, etc.)"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Document Number"
+                  value={physicalStorage.documentNumber}
+                  onChange={(e) => handlePhysicalStorageChange('documentNumber', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.documentNumber.trim()}
+                  helperText={!physicalStorage.documentNumber.trim() ? "Document number is required" : ""}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="File Section"
+                  value={physicalStorage.fileSection}
+                  onChange={(e) => handlePhysicalStorageChange('fileSection', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.fileSection.trim()}
+                  helperText={!physicalStorage.fileSection.trim() ? "File section is required" : ""}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Section Color"
+                  value={physicalStorage.sectionColor}
+                  onChange={(e) => handlePhysicalStorageChange('sectionColor', e.target.value)}
+                  margin="normal"
+                  required
+                  error={!physicalStorage.sectionColor.trim()}
+                  helperText={!physicalStorage.sectionColor.trim() ? "Section color is required" : ""}
+                  placeholder="Enter section color (e.g., Yellow, Orange, Purple, etc.)"
+                />
+              </Grid>
+            </Grid>
+
             <input
               accept="*/*"
               style={{ display: "none" }}
@@ -768,6 +933,92 @@ const ArchivalPage: React.FC = () => {
                   <strong>{key}:</strong> {value?.toString()}
                 </Typography>
               ))}
+              
+              {/* Physical Storage Information */}
+              {viewDoc.physicalLocation && (
+                <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                  <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                    📍 Physical Storage Location
+                  </Typography>
+                  {(() => {
+                    try {
+                      const physicalData = JSON.parse(viewDoc.physicalLocation);
+                      return (
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>Room:</strong> {physicalData.room || 'N/A'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>Cupboard:</strong> {physicalData.cupboard || 'N/A'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>Drawer:</strong> {physicalData.drawer || 'N/A'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>File Number:</strong> {physicalData.fileNumber || 'N/A'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>File Color:</strong> 
+                              <Box component="span" sx={{ 
+                                ml: 1, 
+                                display: 'inline-block', 
+                                width: 20, 
+                                height: 20, 
+                                bgcolor: physicalData.fileColor?.toLowerCase() || 'grey', 
+                                borderRadius: '50%',
+                                border: '1px solid #ccc',
+                                verticalAlign: 'middle'
+                              }} />
+                              {' '}{physicalData.fileColor || 'N/A'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>Document Number:</strong> {physicalData.documentNumber || 'N/A'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>File Section:</strong> {physicalData.fileSection || 'N/A'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" sx={{ mb: 1 }}>
+                              <strong>Section Color:</strong>
+                              <Box component="span" sx={{ 
+                                ml: 1, 
+                                display: 'inline-block', 
+                                width: 20, 
+                                height: 20, 
+                                bgcolor: physicalData.sectionColor?.toLowerCase() || 'grey', 
+                                borderRadius: '50%',
+                                border: '1px solid #ccc',
+                                verticalAlign: 'middle'
+                              }} />
+                              {' '}{physicalData.sectionColor || 'N/A'}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      );
+                    } catch (e) {
+                      return (
+                        <Typography variant="body2" color="error">
+                          Error parsing physical storage data
+                        </Typography>
+                      );
+                    }
+                  })()}
+                </Box>
+              )}
               
               <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
                 <Typography variant="body2" sx={{ mb: 1 }}>

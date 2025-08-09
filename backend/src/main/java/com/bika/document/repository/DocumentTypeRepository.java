@@ -12,5 +12,6 @@ import java.util.Optional;
 public interface DocumentTypeRepository extends JpaRepository<DocumentType, Long> {
     List<DocumentType> findByCompany(Company company);
     Optional<DocumentType> findByCompanyAndCode(Company company, String code);
+    boolean existsByCompanyAndCode(Company company, String code);
 }
  

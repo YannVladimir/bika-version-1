@@ -6,8 +6,11 @@ import com.bika.document.dto.DocumentFieldDTO;
 import com.bika.document.dto.DocumentTypeDTO;
 import com.bika.document.entity.DocumentField;
 import com.bika.document.entity.DocumentType;
+import com.bika.document.exception.DuplicateDocumentTypeException;
 import com.bika.document.repository.DocumentTypeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,68 +20,78 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DocumentTypeService {
 
     private final DocumentTypeRepository documentTypeRepository;
     private final CompanyRepository companyRepository;
     private final DocumentFieldService documentFieldService;
 
-    @Transactional(readOnly = true)
     public List<DocumentType> findAll() {
         return documentTypeRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
     public Optional<DocumentType> findById(Long id) {
         return documentTypeRepository.findById(id);
     }
 
-    @Transactional(readOnly = true)
-    public List<DocumentType> findByCompany(Company company) {
-        return documentTypeRepository.findByCompany(company);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<DocumentType> findByCompanyAndCode(Company company, String code) {
-        return documentTypeRepository.findByCompanyAndCode(company, code);
-    }
-
-    @Transactional
     public DocumentType save(DocumentType documentType) {
         return documentTypeRepository.save(documentType);
     }
 
-    @Transactional
     public void deleteById(Long id) {
         documentTypeRepository.deleteById(id);
     }
 
+    public List<DocumentType> findByCompany(Company company) {
+        return documentTypeRepository.findByCompany(company);
+    }
+
+    public Optional<DocumentType> findByCompanyAndCode(Company company, String code) {
+        return documentTypeRepository.findByCompanyAndCode(company, code);
+    }
+
     // DTO-based methods
-    @Transactional(readOnly = true)
-    public List<DocumentTypeDTO> getAllDocumentTypesDTO() {
+    public List<DocumentTypeDTO> getDocumentTypes() {
         return findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public List<DocumentTypeDTO> getDocumentTypesByCompanyDTO(Long companyId) {
+    public List<DocumentTypeDTO> getDocumentTypesByCompany(Long companyId) {
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new RuntimeException("Company not found"));
+
         return findByCompany(company).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public Optional<DocumentTypeDTO> getDocumentTypeDTOById(Long id) {
-        return findById(id).map(this::toDTO);
+    public DocumentTypeDTO getDocumentTypeById(Long id) {
+        return findById(id)
+                .map(this::toDTO)
+                .orElseThrow(() -> new RuntimeException("Document type not found"));
+    }
+
+    @Transactional
+    public void deleteDocumentType(Long id) {
+        if (!documentTypeRepository.existsById(id)) {
+            throw new RuntimeException("Document type not found");
+        }
+
+        // Note: Fields will be automatically deleted due to CASCADE.ALL
+        documentTypeRepository.deleteById(id);
     }
 
     @Transactional
     public DocumentTypeDTO createDocumentType(DocumentTypeDTO dto) {
         Company company = companyRepository.findById(dto.getCompanyId())
                 .orElseThrow(() -> new RuntimeException("Company not found"));
+
+        // Check if document type code already exists for this company
+        if (documentTypeRepository.existsByCompanyAndCode(company, dto.getCode())) {
+            throw new DuplicateDocumentTypeException("Document type with code '" + dto.getCode() + "' already exists for this company");
+        }
 
         DocumentType documentType = DocumentType.builder()
                 .name(dto.getName())
@@ -90,7 +103,15 @@ public class DocumentTypeService {
                 .updatedBy("system")
                 .build();
 
-        DocumentType saved = save(documentType);
+        DocumentType saved;
+        try {
+            saved = save(documentType);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage().contains("unique") || e.getMessage().contains("duplicate")) {
+                throw new DuplicateDocumentTypeException("Document type with code '" + dto.getCode() + "' already exists for this company");
+            }
+            throw new RuntimeException("Failed to save document type: " + e.getMessage());
+        }
 
         // Save fields if provided
         if (dto.getFields() != null && !dto.getFields().isEmpty()) {
@@ -123,13 +144,28 @@ public class DocumentTypeService {
         DocumentType existingDocumentType = findById(id)
                 .orElseThrow(() -> new RuntimeException("Document type not found"));
 
+        // Check if the new code conflicts with existing document types (excluding current one)
+        if (!existingDocumentType.getCode().equals(dto.getCode())) {
+            if (documentTypeRepository.existsByCompanyAndCode(existingDocumentType.getCompany(), dto.getCode())) {
+                throw new DuplicateDocumentTypeException("Document type with code '" + dto.getCode() + "' already exists for this company");
+            }
+        }
+
         existingDocumentType.setName(dto.getName());
         existingDocumentType.setCode(dto.getCode());
         existingDocumentType.setDescription(dto.getDescription());
         existingDocumentType.setActive(dto.getIsActive() != null ? dto.getIsActive() : true);
         existingDocumentType.setUpdatedBy("system"); // TODO: Get from security context
 
-        DocumentType updated = save(existingDocumentType);
+        DocumentType updated;
+        try {
+            updated = save(existingDocumentType);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMessage().contains("unique") || e.getMessage().contains("duplicate")) {
+                throw new DuplicateDocumentTypeException("Document type with code '" + dto.getCode() + "' already exists for this company");
+            }
+            throw new RuntimeException("Failed to update document type: " + e.getMessage());
+        }
 
         // Update fields - for simplicity, delete existing and recreate
         List<DocumentField> existingFields = documentFieldService.findByDocumentType(updated);

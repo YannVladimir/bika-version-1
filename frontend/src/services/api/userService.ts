@@ -1,6 +1,11 @@
 import apiClient from './client';
 import { User, CreateUserRequest } from './types';
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 class UserService {
   async getUsers(): Promise<User[]> {
     const response = await apiClient.get<User[]>('/v1/users');
@@ -54,6 +59,10 @@ class UserService {
 
   async deleteUser(id: number): Promise<void> {
     await apiClient.delete(`/v1/users/${id}`);
+  }
+
+  async changePassword(passwordData: ChangePasswordRequest): Promise<void> {
+    await apiClient.post('/v1/users/change-password', passwordData);
   }
 }
 

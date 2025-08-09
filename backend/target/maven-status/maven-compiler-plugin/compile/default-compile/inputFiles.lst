@@ -14,7 +14,9 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\Pas
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\entity\UserRole.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\service\DocumentTypeService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\ResourceNotFoundException.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\PhysicalStorageColor.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\BadRequestException.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\repository\PhysicalStorageRoomRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\Document.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\LoginResponse.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\service\ReportsService.java
@@ -30,12 +32,14 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\dto\UserStorageQuotaDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\entity\Department.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\service\CompanyServiceImpl.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\PhysicalStorageRoom.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\AuthenticationResponse.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\RegisterResponse.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\BikaException.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\entity\Task.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\controller\DocumentTypeController.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\FolderDTO.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\service\PhysicalStorageService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\repository\CompanyRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\service\RedisService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\service\TaskService.java
@@ -52,6 +56,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\rep
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\controller\AuditLogController.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\BikaApplication.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\repository\DepartmentRepository.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\dto\ChangePasswordRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\repository\AuditLogRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\service\ElasticsearchService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\dto\DriveFileDTO.java
@@ -59,10 +64,13 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\dto\ErrorResponse.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\config\OpenApiConfig.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\DocumentField.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\validation\ValidPhysicalStorage.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\dto\TaskDTO.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\validation\PhysicalStorageValidator.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\audit\repository\AuditLogAuditRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\service\JwtService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\entity\Project.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\repository\PhysicalStorageColorRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\service\UserService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\FindPassword.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\service\CompanyService.java
@@ -80,6 +88,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\dto\DriveFolderDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\config\DatabaseConfig.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\service\ProjectServiceImpl.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\PhysicalStorageDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\DuplicateResourceException.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\entity\Company.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\service\FolderService.java
@@ -99,6 +108,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\dto
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\DocumentDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\CreateDocumentRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\repository\ProjectRepository.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\PhysicalStorageLookupDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\DocumentType.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\repository\DriveFolderRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\controller\FolderController.java

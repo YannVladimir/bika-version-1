@@ -7,12 +7,14 @@ import com.bika.company.repository.CompanyRepository;
 import com.bika.company.repository.DepartmentRepository;
 import com.bika.document.dto.CreateDocumentRequest;
 import com.bika.document.dto.DocumentDTO;
+import com.bika.document.dto.PhysicalStorageLookupDTO;
 import com.bika.document.entity.Document;
 import com.bika.document.entity.DocumentType;
 import com.bika.document.entity.Folder;
 import com.bika.document.repository.DocumentTypeRepository;
 import com.bika.document.repository.FolderRepository;
 import com.bika.document.service.DocumentService;
+import com.bika.document.service.PhysicalStorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -44,6 +46,7 @@ public class DocumentController {
     private final DocumentTypeRepository documentTypeRepository;
     private final FolderRepository folderRepository;
     private final ObjectMapper objectMapper;
+    private final PhysicalStorageService physicalStorageService;
 
     @Operation(
         summary = "Get documents by folder",
@@ -306,6 +309,30 @@ public class DocumentController {
                     
         } catch (Exception e) {
             log.error("DocumentController: Error downloading document with id: {}", id, e);
+            throw e;
+        }
+    }
+
+    @Operation(
+        summary = "Get physical storage lookup data",
+        description = "Get standardized options for physical storage fields like rooms, colors, etc."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Lookup data retrieved successfully",
+            content = @Content(schema = @Schema(implementation = PhysicalStorageLookupDTO.class))
+        )
+    })
+    @GetMapping("/physical-storage-lookup")
+    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
+    public ResponseEntity<PhysicalStorageLookupDTO> getPhysicalStorageLookup() {
+        log.info("DocumentController: getPhysicalStorageLookup called");
+        try {
+            PhysicalStorageLookupDTO lookupData = physicalStorageService.getPhysicalStorageLookup();
+            return ResponseEntity.ok(lookupData);
+        } catch (Exception e) {
+            log.error("DocumentController: Error getting physical storage lookup data", e);
             throw e;
         }
     }

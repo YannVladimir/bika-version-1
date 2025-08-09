@@ -13,4 +13,5 @@ export { default as driveService } from './driveService';
 
 // Export types
 export * from './types';
-export * from './driveService'; 
+export * from './driveService';
+export type { ChangePasswordRequest } from './userService'; 

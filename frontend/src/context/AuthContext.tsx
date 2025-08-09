@@ -48,11 +48,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData: User = {
         id: response.id,
         email: response.email,
+        username: response.email, // Use email as username if not provided
         firstName: response.firstName,
         lastName: response.lastName,
         role: response.role,
         companyId: response.companyId,
         departmentId: response.departmentId,
+        active: true, // Assume user is active if they can log in
+        createdAt: new Date().toISOString(), // Default to current time
+        updatedAt: new Date().toISOString(), // Default to current time
       };
       setUser(userData);
     } catch (error) {

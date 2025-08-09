@@ -16,7 +16,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "document_types")
+@Table(name = "document_types", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"company_id", "code"}))
 public class DocumentType extends BaseEntity {
     
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,7 +28,7 @@ public class DocumentType extends BaseEntity {
     @Column(nullable = false)
     private String name;
     
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String code;
     
     @Column

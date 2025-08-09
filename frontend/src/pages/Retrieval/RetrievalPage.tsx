@@ -284,12 +284,14 @@ const RetrievalPage: React.FC = () => {
   };
 
   // Get status color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE': return 'success';
-      case 'DRAFT': return 'warning';
-      case 'ARCHIVED': return 'info';
-      case 'DELETED': return 'error';
+  const getStatusColor = (status: string | undefined): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+    if (!status) return "default";
+    
+    switch (status.toLowerCase()) {
+      case 'active': return 'success';
+      case 'draft': return 'warning';
+      case 'archived': return 'secondary';
+      case 'deleted': return 'error';
       default: return 'default';
     }
   };
@@ -325,7 +327,7 @@ const RetrievalPage: React.FC = () => {
       )}
 
       {/* Search Section */}
-      <Paper elevation={0} sx={{ p: 3, mb: 3, backgroundColor: tokens.grey[50] }}>
+      <Paper elevation={0} sx={{ p: 3, mb: 3, backgroundColor: tokens.grey[100] }}>
         {/* Quick Search */}
         <Box display="flex" alignItems="center" gap={2} mb={2}>
           <TextField
@@ -535,7 +537,7 @@ const RetrievalPage: React.FC = () => {
                   <Box mb={2}>
                     <Chip
                       label={doc.status}
-                      color={getStatusColor(doc.status) as any}
+                      color={getStatusColor(doc.status)}
                       size="small"
                       sx={{ mr: 1 }}
                     />
@@ -638,7 +640,7 @@ const RetrievalPage: React.FC = () => {
                         secondary={
                           <Chip 
                             label={viewDoc.status} 
-                            color={getStatusColor(viewDoc.status) as any}
+                            color={getStatusColor(viewDoc.status)}
                             size="small"
                           />
                         } 

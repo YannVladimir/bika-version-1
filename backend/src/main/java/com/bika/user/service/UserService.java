@@ -6,6 +6,7 @@ import com.bika.company.repository.CompanyRepository;
 import com.bika.company.repository.DepartmentRepository;
 import com.bika.user.dto.UserDTO;
 import com.bika.user.dto.CreateUserRequest;
+import com.bika.user.dto.ChangePasswordRequest;
 import com.bika.user.entity.User;
 import com.bika.user.entity.UserRole;
 import com.bika.user.repository.UserRepository;
@@ -264,5 +265,25 @@ public class UserService {
                     .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + userDTO.getDepartmentId()));
             user.setDepartment(department);
         }
+    }
+
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+        
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+        
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        
+        log.info("UserService: Password changed successfully for user: {}", username);
     }
 } 

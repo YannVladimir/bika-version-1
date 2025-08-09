@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Document, CreateDocumentRequest, ApiResponse } from './types';
+import { Document, CreateDocumentRequest, PhysicalStorageLookup, ApiResponse } from './types';
 
 class DocumentService {
   private readonly basePath = '/v1/documents';
@@ -41,6 +41,12 @@ class DocumentService {
     return response.data;
   }
 
+  // Get physical storage lookup data
+  async getPhysicalStorageLookup(): Promise<PhysicalStorageLookup> {
+    const response = await apiClient.get<PhysicalStorageLookup>(`${this.basePath}/physical-storage-lookup`);
+    return response.data;
+  }
+
   // Helper method to create new document with defaults
   createNewDocument(
     name: string, 
@@ -70,12 +76,31 @@ class DocumentService {
     document: CreateDocumentRequest,
     file: File
   ): CreateDocumentRequest {
+    // Preserve existing physical location or create file metadata
+    let physicalLocation = document.physicalLocation;
+    if (!physicalLocation) {
+      physicalLocation = JSON.stringify({ fileName: file.name, uploadTime: new Date().toISOString() });
+    } else {
+      // If physical location exists, parse it and add file info
+      try {
+        const existing = JSON.parse(physicalLocation);
+        physicalLocation = JSON.stringify({ 
+          ...existing, 
+          fileName: file.name, 
+          uploadTime: new Date().toISOString() 
+        });
+      } catch (e) {
+        // If parsing fails, create new object with file info
+        physicalLocation = JSON.stringify({ fileName: file.name, uploadTime: new Date().toISOString() });
+      }
+    }
+    
     return {
       ...document,
       filePath: `/uploads/${file.name}`,
       fileSize: file.size,
       mimeType: file.type,
-      physicalLocation: JSON.stringify({ fileName: file.name, uploadTime: new Date().toISOString() }),
+      physicalLocation,
     };
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -24,25 +25,22 @@ import {
 import { tokens } from "../../theme/theme";
 import { useTheme } from "@mui/material/styles";
 import { InputChangeEvent } from "../../types/events";
-
-// Mock user data - replace with actual user data from your backend
-const mockUserData = {
-  firstName: "John",
-  lastName: "Doe",
-  email: "john.doe@example.com",
-  phone: "+1 234 567 890",
-  role: "Administrator",
-  department: "IT",
-  avatar: null, // URL to avatar image
-};
+import { useAuth } from "../../context/AuthContext";
+import { userService, User, ChangePasswordRequest } from "../../services/api";
 
 interface ProfileProps {}
 
 const Profile: React.FC<ProfileProps> = () => {
   const theme = useTheme();
   const mode = theme.palette.mode;
-  const [userData, setUserData] = useState(mockUserData);
+  const { user: authUser } = useAuth();
+  
+  // State management
+  const [userData, setUserData] = useState<User | null>(null);
+  const [editedData, setEditedData] = useState<Partial<User>>({});
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -52,70 +50,149 @@ const Profile: React.FC<ProfileProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handleEdit = () => {
-    setIsEditing(true);
+  // Load user profile on component mount
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    if (!authUser) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const profileData = await userService.getUserProfile();
+      setUserData(profileData);
+      setEditedData({
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: profileData.email,
+      });
+    } catch (err) {
+      console.error('Error loading user profile:', err);
+      setError('Failed to load user profile');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = () => {
-    // Here you would typically make an API call to update the user data
-    setIsEditing(false);
-    setSuccess("Profile updated successfully!");
-    setTimeout(() => setSuccess(null), 3000);
+  const handleEdit = () => {
+    setIsEditing(true);
+    setError(null);
+    setSuccess(null);
+  };
+
+  const handleSave = async () => {
+    if (!userData) return;
+    
+    try {
+      setSaving(true);
+      setError(null);
+      
+      const updatedUser = await userService.updateUserProfile(editedData);
+      setUserData(updatedUser);
+      setIsEditing(false);
+      setSuccess("Profile updated successfully!");
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError('Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
-    setUserData(mockUserData); // Reset to original data
+    if (userData) {
+      setEditedData({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+      });
+    }
     setIsEditing(false);
+    setError(null);
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setError("New passwords do not match");
       return;
     }
-    // Here you would typically make an API call to change the password
-    setOpenPasswordDialog(false);
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-    setSuccess("Password changed successfully!");
-    setTimeout(() => setSuccess(null), 3000);
+    
+    const changePasswordRequest: ChangePasswordRequest = {
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+    };
+
+    try {
+      setSaving(true);
+      setError(null);
+      
+      await userService.changePassword(changePasswordRequest);
+      setOpenPasswordDialog(false);
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setSuccess("Password changed successfully!");
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error changing password:', err);
+      setError('Failed to change password');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEmailChange = (e: InputChangeEvent) => {
-    setUserData({ ...userData, email: e.target.value });
+  const handleInputChange = (field: keyof User) => (e: InputChangeEvent) => {
+    setEditedData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
   };
 
-  const handlePhoneChange = (e: InputChangeEvent) => {
-    setUserData({ ...userData, phone: e.target.value });
+  const handlePasswordInputChange = (field: keyof typeof passwordData) => (e: InputChangeEvent) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
   };
 
-  const handleDepartmentChange = (e: InputChangeEvent) => {
-    setUserData({ ...userData, department: e.target.value });
+  const getInitials = (firstName?: string, lastName?: string) => {
+    if (!firstName && !lastName) return 'U';
+    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
   };
 
-  const handleCurrentPasswordChange = (e: InputChangeEvent) => {
-    setPasswordData({
-      ...passwordData,
-      currentPassword: e.target.value,
-    });
+  const getRoleDisplayName = (role?: string) => {
+    switch (role) {
+      case 'SUPER_ADMIN': return 'Super Administrator';
+      case 'COMPANY_ADMIN': return 'Company Administrator';
+      case 'MANAGER': return 'Manager';
+      case 'USER': return 'User';
+      default: return role || 'Unknown';
+    }
   };
 
-  const handleNewPasswordChange = (e: InputChangeEvent) => {
-    setPasswordData({
-      ...passwordData,
-      newPassword: e.target.value,
-    });
-  };
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  const handleConfirmPasswordChange = (e: InputChangeEvent) => {
-    setPasswordData({
-      ...passwordData,
-      confirmPassword: e.target.value,
-    });
-  };
+  if (!userData) {
+    return (
+      <Box p={3}>
+        <Alert severity="error">
+          Failed to load user profile. Please try refreshing the page.
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box width="100%" boxSizing="border-box" p={3}>
@@ -160,7 +237,7 @@ const Profile: React.FC<ProfileProps> = () => {
           >
             <Box position="relative" display="inline-block">
               <Avatar
-                src={userData.avatar || undefined}
+                src={undefined} // Remove avatar property reference since it doesn't exist on User type
                 sx={{
                   width: 150,
                   height: 150,
@@ -173,8 +250,7 @@ const Profile: React.FC<ProfileProps> = () => {
                       : undefined,
                 }}
               >
-                {userData.firstName[0]}
-                {userData.lastName[0]}
+                {getInitials(userData.firstName, userData.lastName)}
               </Avatar>
               <IconButton
                 sx={{
@@ -204,7 +280,7 @@ const Profile: React.FC<ProfileProps> = () => {
               variant="body2"
               color={mode === "dark" ? tokens.grey[300] : "text.secondary"}
             >
-              {userData.role}
+              {getRoleDisplayName(userData.role)}
             </Typography>
           </Paper>
         </Grid>
@@ -239,8 +315,9 @@ const Profile: React.FC<ProfileProps> = () => {
                   onClick={handleEdit}
                   variant="outlined"
                   color={mode === "dark" ? "secondary" : "primary"}
+                  disabled={saving}
                 >
-                  Edit Profile
+                  {saving ? <CircularProgress size={24} color="inherit" /> : "Edit Profile"}
                 </Button>
               ) : (
                 <Box>
@@ -248,11 +325,12 @@ const Profile: React.FC<ProfileProps> = () => {
                     onClick={handleSave}
                     color="primary"
                     sx={{ mr: 1 }}
+                    disabled={saving}
                   >
-                    <SaveIcon />
+                    {saving ? <CircularProgress size={24} color="inherit" /> : <SaveIcon />}
                   </IconButton>
-                  <IconButton onClick={handleCancel} color="error">
-                    <CancelIcon />
+                  <IconButton onClick={handleCancel} color="error" disabled={saving}>
+                    {saving ? <CircularProgress size={24} color="inherit" /> : <CancelIcon />}
                   </IconButton>
                 </Box>
               )}
@@ -262,12 +340,10 @@ const Profile: React.FC<ProfileProps> = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="First Name"
-                  value={userData.firstName}
-                  onChange={(e) =>
-                    setUserData({ ...userData, firstName: e.target.value })
-                  }
+                  value={editedData.firstName || ""}
+                  onChange={handleInputChange("firstName")}
                   fullWidth
-                  disabled={!isEditing}
+                  disabled={!isEditing || saving}
                   InputLabelProps={{
                     style: {
                       color: mode === "dark" ? tokens.grey[300] : undefined,
@@ -283,12 +359,10 @@ const Profile: React.FC<ProfileProps> = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Last Name"
-                  value={userData.lastName}
-                  onChange={(e) =>
-                    setUserData({ ...userData, lastName: e.target.value })
-                  }
+                  value={editedData.lastName || ""}
+                  onChange={handleInputChange("lastName")}
                   fullWidth
-                  disabled={!isEditing}
+                  disabled={!isEditing || saving}
                   InputLabelProps={{
                     style: {
                       color: mode === "dark" ? tokens.grey[300] : undefined,
@@ -304,48 +378,10 @@ const Profile: React.FC<ProfileProps> = () => {
               <Grid item xs={12}>
                 <TextField
                   label="Email"
-                  value={userData.email}
-                  onChange={handleEmailChange}
+                  value={editedData.email || ""}
+                  onChange={handleInputChange("email")}
                   fullWidth
-                  disabled={!isEditing}
-                  InputLabelProps={{
-                    style: {
-                      color: mode === "dark" ? tokens.grey[300] : undefined,
-                    },
-                  }}
-                  InputProps={{
-                    style: {
-                      color: mode === "dark" ? tokens.grey[100] : undefined,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Phone"
-                  value={userData.phone}
-                  onChange={handlePhoneChange}
-                  fullWidth
-                  disabled={!isEditing}
-                  InputLabelProps={{
-                    style: {
-                      color: mode === "dark" ? tokens.grey[300] : undefined,
-                    },
-                  }}
-                  InputProps={{
-                    style: {
-                      color: mode === "dark" ? tokens.grey[100] : undefined,
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Department"
-                  value={userData.department}
-                  onChange={handleDepartmentChange}
-                  fullWidth
-                  disabled={!isEditing}
+                  disabled={!isEditing || saving}
                   InputLabelProps={{
                     style: {
                       color: mode === "dark" ? tokens.grey[300] : undefined,
@@ -379,8 +415,9 @@ const Profile: React.FC<ProfileProps> = () => {
                 variant="outlined"
                 onClick={() => setOpenPasswordDialog(true)}
                 color={mode === "dark" ? "secondary" : "primary"}
+                disabled={saving}
               >
-                Change Password
+                {saving ? <CircularProgress size={24} color="inherit" /> : "Change Password"}
               </Button>
             </Box>
           </Paper>
@@ -413,7 +450,7 @@ const Profile: React.FC<ProfileProps> = () => {
               fullWidth
               margin="normal"
               value={passwordData.currentPassword}
-              onChange={handleCurrentPasswordChange}
+              onChange={handlePasswordInputChange("currentPassword")}
               InputLabelProps={{
                 style: {
                   color: mode === "dark" ? tokens.grey[300] : undefined,
@@ -431,7 +468,7 @@ const Profile: React.FC<ProfileProps> = () => {
               fullWidth
               margin="normal"
               value={passwordData.newPassword}
-              onChange={handleNewPasswordChange}
+              onChange={handlePasswordInputChange("newPassword")}
               InputLabelProps={{
                 style: {
                   color: mode === "dark" ? tokens.grey[300] : undefined,
@@ -449,7 +486,7 @@ const Profile: React.FC<ProfileProps> = () => {
               fullWidth
               margin="normal"
               value={passwordData.confirmPassword}
-              onChange={handleConfirmPasswordChange}
+              onChange={handlePasswordInputChange("confirmPassword")}
               InputLabelProps={{
                 style: {
                   color: mode === "dark" ? tokens.grey[300] : undefined,
@@ -464,15 +501,16 @@ const Profile: React.FC<ProfileProps> = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenPasswordDialog(false)} color="inherit">
+          <Button onClick={() => setOpenPasswordDialog(false)} color="inherit" disabled={saving}>
             Cancel
           </Button>
           <Button
             onClick={handlePasswordChange}
             variant="contained"
             color={mode === "dark" ? "secondary" : "primary"}
+            disabled={saving}
           >
-            Change Password
+            {saving ? <CircularProgress size={24} color="inherit" /> : "Change Password"}
           </Button>
         </DialogActions>
       </Dialog>
