@@ -48,7 +48,6 @@ public class FolderController {
         )
     })
     @GetMapping("/company/{companyId}/root")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<FolderDTO>> getRootFoldersByCompany(@PathVariable Long companyId) {
         log.info("FolderController: getRootFoldersByCompany called for companyId: {}", companyId);
         try {
@@ -78,7 +77,6 @@ public class FolderController {
         )
     })
     @GetMapping("/{id}/contents")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<FolderDTO> getFolderContents(@PathVariable Long id) {
         log.info("FolderController: getFolderContents called for id: {}", id);
         try {
@@ -120,7 +118,6 @@ public class FolderController {
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<FolderDTO> createFolder(@Valid @RequestBody FolderDTO folderDTO) {
         log.info("FolderController: createFolder called for name: {}", folderDTO.getName());
         try {
@@ -150,7 +147,6 @@ public class FolderController {
         )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<FolderDTO> getFolderById(@PathVariable Long id) {
         log.info("FolderController: getFolderById called for id: {}", id);
         try {
@@ -185,7 +181,6 @@ public class FolderController {
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<Void> deleteFolder(@PathVariable Long id) {
         log.info("FolderController: deleteFolder called for id: {}", id);
         try {

@@ -1,7 +1,7 @@
 package com.bika.document.controller;
 
 import com.bika.document.exception.DuplicateDocumentTypeException;
-import com.bika.core.ErrorResponse;
+import com.bika.common.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import jakarta.validation.ConstraintViolationException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,8 +23,11 @@ public class DocumentTypeExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDuplicateDocumentType(DuplicateDocumentTypeException ex) {
         log.error("Duplicate document type error: {}", ex.getMessage());
         ErrorResponse error = ErrorResponse.builder()
-                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
+                .error("Conflict")
+                .message(ex.getMessage())
+                .path("/api/v1/document-types")
                 .build();
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
@@ -37,8 +41,11 @@ public class DocumentTypeExceptionHandler {
         }
         
         ErrorResponse error = ErrorResponse.builder()
-                .message(message)
+                .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
+                .error("Conflict")
+                .message(message)
+                .path("/api/v1/document-types")
                 .build();
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
@@ -64,8 +71,11 @@ public class DocumentTypeExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
         log.error("Constraint violation: {}", ex.getMessage());
         ErrorResponse error = ErrorResponse.builder()
-                .message("Validation failed: " + ex.getMessage())
+                .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message("Validation failed: " + ex.getMessage())
+                .path("/api/v1/document-types")
                 .build();
         return ResponseEntity.badRequest().body(error);
     }

@@ -12,6 +12,7 @@ import com.bika.user.entity.UserRole;
 import com.bika.user.repository.UserRepository;
 import com.bika.common.exception.ResourceNotFoundException;
 import com.bika.common.exception.DuplicateResourceException;
+import com.bika.email.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,16 +33,22 @@ public class UserService {
     private final CompanyRepository companyRepository;
     private final DepartmentRepository departmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final PasswordResetService passwordResetService;
 
     @Autowired
     public UserService(UserRepository userRepository, 
                       CompanyRepository companyRepository,
                       DepartmentRepository departmentRepository,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder,
+                      EmailService emailService,
+                      PasswordResetService passwordResetService) {
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.departmentRepository = departmentRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
+        this.passwordResetService = passwordResetService;
     }
 
     @Transactional
@@ -69,11 +76,14 @@ public class UserService {
                     .orElseThrow(() -> new ResourceNotFoundException("Administration department not found for company: " + company.getName()));
         }
         
-        // Create the user
+        // Generate temporary password
+        String temporaryPassword = passwordResetService.generateTemporaryPassword();
+        
+        // Create the user with temporary password
         User user = User.builder()
                 .username(createUserRequest.getUsername())
                 .email(createUserRequest.getEmail())
-                .password(passwordEncoder.encode(createUserRequest.getPassword()))
+                .password(passwordEncoder.encode(temporaryPassword))
                 .firstName(createUserRequest.getFirstName())
                 .lastName(createUserRequest.getLastName())
                 .company(company)
@@ -84,6 +94,16 @@ public class UserService {
         
         User savedUser = userRepository.save(user);
         log.info("UserService: User created successfully with ID: {}", savedUser.getId());
+        
+        // Send welcome email with temporary password
+        try {
+            emailService.sendWelcomeEmail(savedUser, temporaryPassword);
+            log.info("UserService: Welcome email sent to: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            log.error("UserService: Failed to send welcome email to: {}", savedUser.getEmail(), e);
+            // Don't fail user creation if email fails
+        }
+        
         return convertToDTO(savedUser);
     }
 

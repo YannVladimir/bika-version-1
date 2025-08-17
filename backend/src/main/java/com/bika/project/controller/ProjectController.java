@@ -52,7 +52,6 @@ public class ProjectController {
         )
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ProjectDTO> createProject(@Valid @RequestBody ProjectDTO projectDTO) {
         return ResponseEntity.ok(projectService.createProject(projectDTO));
     }
@@ -74,7 +73,6 @@ public class ProjectController {
         )
     })
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<ProjectDTO>> getAllProjects() {
         return ResponseEntity.ok(projectService.getAllProjects());
     }
@@ -101,7 +99,6 @@ public class ProjectController {
         )
     })
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<ProjectDTO>> getProjectsByCompany(@PathVariable Long companyId) {
         return ResponseEntity.ok(projectService.getProjectsByCompany(companyId));
     }
@@ -128,7 +125,6 @@ public class ProjectController {
         )
     })
     @GetMapping("/department/{departmentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<ProjectDTO>> getProjectsByDepartment(@PathVariable Long departmentId) {
         return ResponseEntity.ok(projectService.getProjectsByDepartment(departmentId));
     }
@@ -155,7 +151,6 @@ public class ProjectController {
         )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'EMPLOYEE')")
     public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
         return ResponseEntity.ok(projectService.getProjectById(id));
     }
@@ -187,7 +182,6 @@ public class ProjectController {
         )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ProjectDTO> updateProject(
             @PathVariable Long id,
             @Valid @RequestBody ProjectDTO projectDTO) {
@@ -215,7 +209,6 @@ public class ProjectController {
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();

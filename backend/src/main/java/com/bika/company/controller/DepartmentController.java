@@ -125,7 +125,6 @@ public class DepartmentController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     @PostMapping
     public ResponseEntity<DepartmentDTO> createDepartment(@Valid @RequestBody DepartmentDTO departmentDTO) {
         log.info("DepartmentController: createDepartment called for name: {}", departmentDTO.getName());
@@ -160,7 +159,6 @@ public class DepartmentController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<DepartmentDTO> updateDepartment(
             @PathVariable Long id,
@@ -191,7 +189,6 @@ public class DepartmentController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))
         )
     })
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDepartment(@PathVariable Long id) {
         log.info("DepartmentController: deleteDepartment called for id: {}", id);

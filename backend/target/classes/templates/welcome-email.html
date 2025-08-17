@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Bika DMS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .btn:hover {
+            background-color: #218838;
+        }
+        .credentials {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .credential-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .credential-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .credential-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .credential-value {
+            color: #007bff;
+            font-family: monospace;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            font-size: 14px;
+            color: #666;
+        }
+        .important {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .features {
+            background-color: #e7f3ff;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎉 Welcome to Bika DMS</div>
+            <h2>Your Account is Ready!</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hello <strong th:text="${userName}">User</strong>,</p>
+            
+            <p>Welcome to Bika Document Management System! Your account has been created successfully and you're all set to start managing your documents efficiently.</p>
+            
+            <div class="credentials">
+                <h3 style="margin-top: 0; color: #495057;">Your Login Credentials</h3>
+                <div class="credential-row">
+                    <span class="credential-label">Email:</span>
+                    <span class="credential-value" th:text="${email}">user@example.com</span>
+                </div>
+                <div class="credential-row">
+                    <span class="credential-label">Temporary Password:</span>
+                    <span class="credential-value" th:text="${temporaryPassword}">temp123</span>
+                </div>
+                <div class="credential-row">
+                    <span class="credential-label">Role:</span>
+                    <span class="credential-value" th:text="${role}">User</span>
+                </div>
+            </div>
+            
+            <div class="important">
+                <strong>Important Security Notice:</strong>
+                <ul>
+                    <li>Please change your temporary password immediately after your first login</li>
+                    <li>Use a strong password with at least 8 characters</li>
+                    <li>Keep your login credentials secure and don't share them with others</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a th:href="${loginLink}" class="btn">Login to Your Account</a>
+            </div>
+            
+            <div class="features">
+                <h3 style="margin-top: 0; color: #0c5460;">What you can do with Bika DMS:</h3>
+                <ul>
+                    <li>📁 Organize and manage your documents efficiently</li>
+                    <li>🔍 Search and retrieve documents quickly</li>
+                    <li>👥 Collaborate with team members</li>
+                    <li>🔒 Secure document storage and access control</li>
+                    <li>📊 Track document activities and workflows</li>
+                </ul>
+            </div>
+            
+            <p>If you have any questions or need assistance getting started, please don't hesitate to contact our support team.</p>
+            
+            <p>We're excited to have you on board!</p>
+            
+            <p>Best regards,<br>
+            The Bika Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This email was sent from Bika Document Management System</p>
+            <p>Please do not reply to this automated email.</p>
+        </div>
+    </div>
+</body>
+</html> 

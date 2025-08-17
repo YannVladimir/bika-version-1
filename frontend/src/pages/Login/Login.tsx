@@ -23,10 +23,21 @@ const LoginRoot = styled(Box)({
   alignItems: "center",
   justifyContent: "center",
   padding: "20px",
-  background: `linear-gradient(135deg, 
-    ${tokens.primary.main} 0%, 
-    ${tokens.primary.light} 50%,
-    ${tokens.secondary.main} 100%)`,
+  backgroundImage: "url('/archive-bg.webp')",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  position: "relative",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.4)", // Dark overlay for better text readability
+    zIndex: 1,
+  },
 });
 
 const LoginCard = styled(Card)(({ theme }) => ({
@@ -34,13 +45,18 @@ const LoginCard = styled(Card)(({ theme }) => ({
   width: "100%",
   maxWidth: 400,
   borderRadius: 16,
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+  backgroundColor: "rgba(255, 255, 255, 0.95)", // Semi-transparent white background
+  backdropFilter: "blur(10px)", // Glass effect
+  position: "relative",
+  zIndex: 2,
 }));
 
 const Logo = styled("img")({
-  width: 120,
-  height: "auto",
-  marginBottom: 32,
+  width: 80,
+  height: 80,
+  marginBottom: 24,
+  borderRadius: "8px", // Slight rounded corners for the logo
 });
 
 const Form = styled("form")({
@@ -95,7 +111,7 @@ const Login: React.FC = () => {
     <LoginRoot>
       <LoginCard>
         <Box display="flex" flexDirection="column" alignItems="center">
-          <Logo src="/logo.png" alt="Bika Logo" />
+          <Logo src="/logo.ico" alt="Bika Logo" />
           <Typography variant="h5" fontWeight={600} mb={3}>
             Welcome back
           </Typography>

@@ -42,7 +42,6 @@ public class TaskController {
         )
     })
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<TaskDTO>> getAllTasks() {
         return ResponseEntity.ok(taskService.getAllTasks());
     }
@@ -90,7 +89,6 @@ public class TaskController {
         )
     })
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<TaskDTO>> getTasksByCompany(@PathVariable Long companyId) {
         return ResponseEntity.ok(taskService.getTasksByCompany(companyId));
     }
@@ -117,7 +115,6 @@ public class TaskController {
         )
     })
     @GetMapping("/department/{departmentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<TaskDTO>> getTasksByDepartment(@PathVariable Long departmentId) {
         return ResponseEntity.ok(taskService.getTasksByDepartment(departmentId));
     }
@@ -144,7 +141,6 @@ public class TaskController {
         )
     })
     @GetMapping("/project/{projectId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<TaskDTO>> getTasksByProject(@PathVariable Long projectId) {
         return ResponseEntity.ok(taskService.getTasksByProject(projectId));
     }
@@ -171,7 +167,6 @@ public class TaskController {
         )
     })
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<TaskDTO>> getTasksByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(taskService.getTasksByUser(userId));
     }
@@ -193,7 +188,6 @@ public class TaskController {
         )
     })
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<TaskDTO>> getTasksByStatus(@PathVariable String status) {
         return ResponseEntity.ok(taskService.getTasksByStatus(status));
     }
@@ -246,7 +240,6 @@ public class TaskController {
         )
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TaskDTO> createTask(@Valid @RequestBody TaskDTO taskDTO) {
         TaskDTO createdTask = taskService.createTask(taskDTO);
         return ResponseEntity.status(201).body(createdTask);
@@ -335,7 +328,6 @@ public class TaskController {
         )
     })
     @PatchMapping("/{taskId}/assign/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TaskDTO> assignTask(
             @PathVariable Long taskId,
             @PathVariable Long userId) {
@@ -363,7 +355,6 @@ public class TaskController {
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();

@@ -65,7 +65,6 @@ public class DocumentController {
         )
     })
     @GetMapping("/folder/{folderId}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<DocumentDTO>> getDocumentsByFolder(@PathVariable Long folderId) {
         log.info("DocumentController: getDocumentsByFolder called for folderId: {}", folderId);
         try {
@@ -100,7 +99,6 @@ public class DocumentController {
         )
     })
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<DocumentDTO>> getDocumentsByCompany(@PathVariable Long companyId) {
         log.info("DocumentController: getDocumentsByCompany called for companyId: {}", companyId);
         try {
@@ -135,7 +133,6 @@ public class DocumentController {
         )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DocumentDTO> getDocumentById(@PathVariable Long id) {
         log.info("DocumentController: getDocumentById called for id: {}", id);
         try {
@@ -172,7 +169,6 @@ public class DocumentController {
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DocumentDTO> createDocument(@Valid @RequestBody CreateDocumentRequest request) {
         log.info("DocumentController: createDocument called for name: {}", request.getName());
         try {
@@ -252,7 +248,6 @@ public class DocumentController {
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         log.info("DocumentController: deleteDocument called for id: {}", id);
         try {
@@ -281,7 +276,6 @@ public class DocumentController {
         )
     })
     @GetMapping("/{id}/download")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<byte[]> downloadDocument(@PathVariable Long id) {
         log.info("DocumentController: downloadDocument called for id: {}", id);
         try {
@@ -325,7 +319,6 @@ public class DocumentController {
         )
     })
     @GetMapping("/physical-storage-lookup")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<PhysicalStorageLookupDTO> getPhysicalStorageLookup() {
         log.info("DocumentController: getPhysicalStorageLookup called");
         try {

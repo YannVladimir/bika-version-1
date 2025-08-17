@@ -39,11 +39,10 @@ public class DocumentTypeController {
         )
     })
     @GetMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<DocumentTypeDTO>> getAllDocumentTypes() {
         log.info("DocumentTypeController: getAllDocumentTypes called");
         try {
-            List<DocumentTypeDTO> documentTypes = documentTypeService.getAllDocumentTypesDTO();
+            List<DocumentTypeDTO> documentTypes = documentTypeService.getDocumentTypes();
             log.info("DocumentTypeController: Retrieved {} document types successfully", documentTypes.size());
             return ResponseEntity.ok(documentTypes);
         } catch (Exception e) {
@@ -69,11 +68,10 @@ public class DocumentTypeController {
         )
     })
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<DocumentTypeDTO>> getDocumentTypesByCompany(@PathVariable Long companyId) {
         log.info("DocumentTypeController: getDocumentTypesByCompany called for companyId: {}", companyId);
         try {
-            List<DocumentTypeDTO> documentTypes = documentTypeService.getDocumentTypesByCompanyDTO(companyId);
+            List<DocumentTypeDTO> documentTypes = documentTypeService.getDocumentTypesByCompany(companyId);
             log.info("DocumentTypeController: Retrieved {} document types for company {}", documentTypes.size(), companyId);
             return ResponseEntity.ok(documentTypes);
         } catch (Exception e) {
@@ -99,19 +97,12 @@ public class DocumentTypeController {
         )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DocumentTypeDTO> getDocumentTypeById(@PathVariable Long id) {
         log.info("DocumentTypeController: getDocumentTypeById called for id: {}", id);
         try {
-            return documentTypeService.getDocumentTypeDTOById(id)
-                    .map(documentType -> {
-                        log.info("DocumentTypeController: Document type found with ID: {}", id);
-                        return ResponseEntity.ok(documentType);
-                    })
-                    .orElseGet(() -> {
-                        log.warn("DocumentTypeController: Document type not found with ID: {}", id);
-                        return ResponseEntity.notFound().build();
-                    });
+            DocumentTypeDTO documentType = documentTypeService.getDocumentTypeById(id);
+            log.info("DocumentTypeController: Document type found with ID: {}", id);
+            return ResponseEntity.ok(documentType);
         } catch (Exception e) {
             log.error("DocumentTypeController: Error getting document type by id: {}", id, e);
             throw e;
@@ -135,7 +126,6 @@ public class DocumentTypeController {
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<DocumentTypeDTO> createDocumentType(@Valid @RequestBody DocumentTypeDTO documentTypeDTO) {
         log.info("DocumentTypeController: createDocumentType called for name: {}", documentTypeDTO.getName());
         try {
@@ -170,7 +160,6 @@ public class DocumentTypeController {
         )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<DocumentTypeDTO> updateDocumentType(
             @PathVariable Long id,
             @Valid @RequestBody DocumentTypeDTO documentTypeDTO) {
@@ -201,7 +190,6 @@ public class DocumentTypeController {
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<Void> deleteDocumentType(@PathVariable Long id) {
         log.info("DocumentTypeController: deleteDocumentType called for id: {}", id);
         try {

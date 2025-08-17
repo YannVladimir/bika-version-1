@@ -46,7 +46,6 @@ public class UserController {
         )
     })
     @PostMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {
         log.info("UserController: createUser called for email: {}", createUserRequest.getEmail());
         try {
@@ -71,7 +70,6 @@ public class UserController {
         )
     })
     @GetMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         log.info("UserController: getAllUsers called");
         try {
@@ -101,7 +99,6 @@ public class UserController {
         )
     })
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<List<UserDTO>> getUsersByCompany(@PathVariable Long companyId) {
         log.info("UserController: getUsersByCompany called for companyId: {}", companyId);
         try {
@@ -131,7 +128,6 @@ public class UserController {
         )
     })
     @GetMapping("/department/{departmentId}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<UserDTO>> getUsersByDepartment(@PathVariable Long departmentId) {
         log.info("UserController: getUsersByDepartment called for departmentId: {}", departmentId);
         try {
@@ -161,7 +157,6 @@ public class UserController {
         )
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         log.info("UserController: getUserById called for id: {}", id);
         try {
@@ -225,7 +220,6 @@ public class UserController {
         )
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<UserDTO> updateUser(
             @PathVariable Long id,
             @Valid @RequestBody UserDTO userDTO) {
@@ -286,7 +280,6 @@ public class UserController {
         )
     })
     @PatchMapping("/{id}/deactivate")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<UserDTO> deactivateUser(@PathVariable Long id) {
         log.info("UserController: deactivateUser called for id: {}", id);
         try {
@@ -316,7 +309,6 @@ public class UserController {
         )
     })
     @PatchMapping("/{id}/activate")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN')")
     public ResponseEntity<UserDTO> activateUser(@PathVariable Long id) {
         log.info("UserController: activateUser called for id: {}", id);
         try {
@@ -345,7 +337,6 @@ public class UserController {
         )
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         log.info("UserController: deleteUser called for id: {}", id);
         try {
@@ -374,7 +365,6 @@ public class UserController {
         )
     })
     @PostMapping("/change-password")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         log.info("UserController: changePassword called");
         try {

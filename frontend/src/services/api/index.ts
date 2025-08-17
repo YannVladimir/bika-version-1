@@ -10,8 +10,12 @@ export { default as documentTypeService } from './documentTypeService';
 export { default as folderService } from './folderService';
 export { default as documentService } from './documentService';
 export { default as driveService } from './driveService';
+export { dashboardService } from './dashboardService';
+export { passwordResetService } from './passwordResetService';
 
 // Export types
 export * from './types';
 export * from './driveService';
+export * from './dashboardService';
+export * from './passwordResetService';
 export type { ChangePasswordRequest } from './userService'; 

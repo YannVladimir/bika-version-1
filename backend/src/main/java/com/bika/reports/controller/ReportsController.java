@@ -6,6 +6,7 @@ import com.bika.reports.dto.DocumentStatsDTO;
 import com.bika.reports.dto.TaskStatsDTO;
 import com.bika.reports.dto.UserStatsDTO;
 import com.bika.reports.service.ReportsService;
+import com.bika.reports.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,6 +30,28 @@ import java.util.Map;
 public class ReportsController {
 
     private final ReportsService reportsService;
+    private final DashboardService dashboardService;
+
+    @Operation(
+        summary = "Get role-based dashboard statistics",
+        description = "Retrieve dashboard statistics based on current user's role"
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Dashboard statistics retrieved successfully",
+            content = @Content(schema = @Schema(implementation = DashboardStatsDTO.class))
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
+    @GetMapping("/dashboard/role-based")
+    public ResponseEntity<DashboardStatsDTO> getRoleBasedDashboardStats() {
+        return ResponseEntity.ok(dashboardService.getRoleBasedDashboardStats());
+    }
 
     @Operation(
         summary = "Get dashboard statistics",
@@ -47,7 +70,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/dashboard")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
         return ResponseEntity.ok(reportsService.getDashboardStats());
     }
@@ -69,7 +91,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/documents")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<DocumentStatsDTO> getDocumentStats(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
@@ -93,7 +114,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/tasks")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<TaskStatsDTO> getTaskStats(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
@@ -117,7 +137,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserStatsDTO> getUserStats() {
         return ResponseEntity.ok(reportsService.getUserStats());
     }
@@ -143,7 +162,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> getCompanyStats(@PathVariable Long companyId) {
         return ResponseEntity.ok(reportsService.getCompanyStats(companyId));
     }
@@ -169,7 +187,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/department/{departmentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<Map<String, Object>> getDepartmentStats(@PathVariable Long departmentId) {
         return ResponseEntity.ok(reportsService.getDepartmentStats(departmentId));
     }
@@ -190,7 +207,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/documents/timeline")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<Map<String, Object>>> getDocumentTimeline(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
@@ -213,7 +229,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/tasks/trends")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<Map<String, Object>>> getTaskCompletionTrends(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
@@ -236,7 +251,6 @@ public class ReportsController {
         )
     })
     @GetMapping("/storage")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getStorageStats() {
         return ResponseEntity.ok(reportsService.getStorageStats());
     }

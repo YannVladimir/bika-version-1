@@ -10,11 +10,14 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\dto\UserDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\service\UserDetailsServiceImpl.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\dto\AuthenticationRequest.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\repository\PasswordResetTokenRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\PasswordHashGenerator.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\entity\UserRole.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\service\DocumentTypeService.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\service\DashboardService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\ResourceNotFoundException.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\PhysicalStorageColor.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\exception\DuplicateDocumentTypeException.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\BadRequestException.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\repository\PhysicalStorageRoomRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\Document.java
@@ -41,6 +44,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\FolderDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\service\PhysicalStorageService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\repository\CompanyRepository.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\email\service\EmailService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\service\RedisService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\service\TaskService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\Folder.java
@@ -52,6 +56,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\Pas
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\AuditLog.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\dto\DashboardStatsDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\entity\UserStorageQuota.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\dto\PasswordResetDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\task\repository\TaskRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\controller\AuditLogController.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\BikaApplication.java
@@ -74,8 +79,11 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\service\UserService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\util\FindPassword.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\service\CompanyService.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\service\PasswordResetService.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\entity\DriveFile.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\dto\PasswordResetRequestDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\entity\BaseEntity.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\controller\DocumentTypeExceptionHandler.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\controller\DriveController.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\DocumentTypeDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\repository\UserStorageQuotaRepository.java
@@ -96,6 +104,7 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\se
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\company\dto\DepartmentDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security\config\SecurityConfig.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\controller\UserController.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\config\AsyncConfig.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\dto\CreateDriveFileRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\reports\dto\TaskStatsDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\repository\DriveFileRepository.java
@@ -104,9 +113,11 @@ C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\security
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\drive\dto\CreateDriveFolderRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\common\exception\GlobalExceptionHandler.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\DocumentFieldDTO.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\controller\PasswordResetController.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\dto\CreateUserRequest.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\DocumentDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\CreateDocumentRequest.java
+C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\user\entity\PasswordResetToken.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\project\repository\ProjectRepository.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\dto\PhysicalStorageLookupDTO.java
 C:\Users\Administrator\Desktop\bika\bika\backend\src\main\java\com\bika\document\entity\DocumentType.java

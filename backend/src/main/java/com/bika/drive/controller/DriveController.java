@@ -52,7 +52,6 @@ public class DriveController {
         )
     })
     @GetMapping("/storage/quota")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<UserStorageQuotaDTO> getStorageQuota() {
         log.info("DriveController: getStorageQuota called");
         try {
@@ -80,7 +79,6 @@ public class DriveController {
         )
     })
     @GetMapping("/folders/root")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<DriveFolderDTO>> getRootFolders() {
         log.info("DriveController: getRootFolders called");
         try {
@@ -111,7 +109,6 @@ public class DriveController {
         )
     })
     @GetMapping("/folders/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DriveFolderDTO> getFolderById(@PathVariable Long id) {
         log.info("DriveController: getFolderById called for id: {}", id);
         try {
@@ -147,7 +144,6 @@ public class DriveController {
         )
     })
     @PostMapping("/folders")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DriveFolderDTO> createFolder(@Valid @RequestBody CreateDriveFolderRequest request) {
         log.info("DriveController: createFolder called for name: {}", request.getName());
         try {
@@ -178,7 +174,6 @@ public class DriveController {
         )
     })
     @PutMapping("/folders/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DriveFolderDTO> updateFolder(@PathVariable Long id, @Valid @RequestBody CreateDriveFolderRequest request) {
         log.info("DriveController: updateFolder called for id: {}", id);
         try {
@@ -208,7 +203,6 @@ public class DriveController {
         )
     })
     @DeleteMapping("/folders/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<Void> deleteFolder(@PathVariable Long id) {
         log.info("DriveController: deleteFolder called for id: {}", id);
         try {
@@ -236,7 +230,6 @@ public class DriveController {
         )
     })
     @GetMapping("/files")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<DriveFileDTO>> getAllFiles() {
         log.info("DriveController: getAllFiles called");
         try {
@@ -262,7 +255,6 @@ public class DriveController {
         )
     })
     @GetMapping("/files/folder")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<DriveFileDTO>> getFilesByFolder(@RequestParam(required = false) Long folderId) {
         log.info("DriveController: getFilesByFolder called for folderId: {}", folderId);
         try {
@@ -293,7 +285,6 @@ public class DriveController {
         )
     })
     @GetMapping("/files/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DriveFileDTO> getFileById(@PathVariable Long id) {
         log.info("DriveController: getFileById called for id: {}", id);
         try {
@@ -329,7 +320,6 @@ public class DriveController {
         )
     })
     @PostMapping("/files")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DriveFileDTO> uploadFile(@Valid @RequestBody CreateDriveFileRequest request) {
         log.info("DriveController: uploadFile called for name: {}", request.getName());
         try {
@@ -360,7 +350,6 @@ public class DriveController {
         )
     })
     @PutMapping("/files/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<DriveFileDTO> updateFile(@PathVariable Long id, @Valid @RequestBody CreateDriveFileRequest request) {
         log.info("DriveController: updateFile called for id: {}", id);
         try {
@@ -390,7 +379,6 @@ public class DriveController {
         )
     })
     @DeleteMapping("/files/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
         log.info("DriveController: deleteFile called for id: {}", id);
         try {
@@ -420,7 +408,6 @@ public class DriveController {
         )
     })
     @GetMapping("/files/{id}/download")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) {
         log.info("DriveController: downloadFile called for id: {}", id);
         try {
@@ -469,7 +456,6 @@ public class DriveController {
         )
     })
     @GetMapping("/files/type/{mimeType}")
-    @PreAuthorize("hasRole('SUPER_ADMIN') or hasRole('COMPANY_ADMIN') or hasRole('MANAGER') or hasRole('USER')")
     public ResponseEntity<List<DriveFileDTO>> getFilesByType(@PathVariable String mimeType) {
         log.info("DriveController: getFilesByType called for mimeType: {}", mimeType);
         try {

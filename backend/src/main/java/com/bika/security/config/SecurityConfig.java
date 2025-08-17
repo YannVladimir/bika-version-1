@@ -26,7 +26,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+// @EnableMethodSecurity - Disabled to allow all operations without permission checks
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
