@@ -1,0 +1,16 @@
+target/
+build/
+.gradle/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Real local config -- copy application.yml.example to application.yml
+# and fill in your own values. Never commit the real file.
+src/main/resources/application.yml
+src/main/resources/application.properties
+
+.DS_Store
