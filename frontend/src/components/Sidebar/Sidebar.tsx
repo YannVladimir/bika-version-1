@@ -25,7 +25,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { tokens } from "../../theme/theme";
-import { getMenuItemsForRole, MenuItem, UserRole } from "../../utils/roleUtils";
+import { getMenuItemsForRole, MenuItem } from "../../utils/roleUtils";
 
 const DRAWER_WIDTH = 280;
 

@@ -18,9 +18,7 @@ import {
   Avatar,
   List,
   ListItem,
-  ListItemAvatar,
   ListItemText,
-  ListItemSecondaryAction,
   Divider,
   Alert,
   CircularProgress,
@@ -28,8 +26,6 @@ import {
   Card,
   CardContent,
   CardActions,
-  Tooltip,
-  Badge,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -42,16 +38,14 @@ import {
   CalendarToday as CalendarIcon,
   Person as PersonIcon,
   Business as BusinessIcon,
-  Folder as FolderIcon,
 } from "@mui/icons-material";
 import { tokens } from "../../theme/theme";
 import { useAuth } from "../../context/AuthContext";
-import { 
-  documentService, 
+import {
+  documentService,
   documentTypeService,
-  Document, 
-  DocumentType,
-  FieldType 
+  Document,
+  DocumentType
 } from "../../services/api";
 
 // Search filters interface

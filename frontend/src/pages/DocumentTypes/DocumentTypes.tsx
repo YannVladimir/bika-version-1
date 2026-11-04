@@ -56,6 +56,8 @@ const DocumentTypesPage: React.FC = () => {
   // Load document types on component mount
   useEffect(() => {
     loadDocumentTypes();
+    // loadDocumentTypes is redefined every render; depending on user (not the function) is deliberate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadDocumentTypes = async () => {
