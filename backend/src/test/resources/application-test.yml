@@ -16,6 +16,15 @@ spring:
         format_sql: true
   flyway:
     enabled: false
+  mail:
+    host: localhost
+    port: 25
+
+email:
+  from: test@example.com
+  from-name: Bika Test
+  frontend-url: http://localhost:3000
+  reset-password-expiry: 3600000
   elasticsearch:
     uris: http://localhost:9200
   redis:

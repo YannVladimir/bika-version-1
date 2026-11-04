@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -21,12 +21,10 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  ListItemSecondaryAction,
   Alert,
   CircularProgress,
   Chip,
   Avatar,
-  Tooltip,
   Menu,
   MenuItem,
   Divider,
@@ -60,8 +58,7 @@ import {
   DriveFolder, 
   DriveFile, 
   UserStorageQuota,
-  CreateDriveFolderRequest,
-  CreateDriveFileRequest
+  CreateDriveFolderRequest
 } from "../../services/api";
 
 const DrivePage: React.FC = () => {
@@ -71,7 +68,8 @@ const DrivePage: React.FC = () => {
   const [folders, setFolders] = useState<DriveFolder[]>([]);
   const [files, setFiles] = useState<DriveFile[]>([]);
   const [currentPath, setCurrentPath] = useState<number[]>([]);
-  const [currentFolder, setCurrentFolder] = useState<DriveFolder | null>(null);
+  // Tracked for a future breadcrumb/folder-name display; not read yet.
+  const [, setCurrentFolder] = useState<DriveFolder | null>(null);
   const [storageQuota, setStorageQuota] = useState<UserStorageQuota | null>(null);
   
   // Loading and error states
@@ -97,6 +95,8 @@ const DrivePage: React.FC = () => {
   // Load initial data
   useEffect(() => {
     loadData();
+    // loadData is redefined every render; depending on user (not the function) is deliberate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Load current folder contents when path changes

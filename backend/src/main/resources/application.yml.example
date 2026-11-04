@@ -1,0 +1,90 @@
+# Copy this file to application.yml and fill in real values for your
+# environment. application.yml is gitignored -- never commit the real one.
+spring:
+  application:
+    name: bika
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bika
+    username: postgres
+    password: changeme
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        globally_quoted_identifiers: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    schemas: public
+    validate-on-migrate: false
+    out-of-order: true
+  elasticsearch:
+    uris: http://localhost:9200
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  mail:
+    host: changeme.example.com
+    port: 587
+    username: changeme
+    password: changeme
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: changeme.example.com
+        transport:
+          protocol: smtp
+        debug: false
+
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+minio:
+  endpoint: http://localhost:9000
+  accessKey: changeme
+  secretKey: changeme
+  bucket: bika
+
+jwt:
+  # Generate your own secret -- do not reuse this placeholder.
+  secret: ${JWT_SECRET:changeme-generate-a-real-random-secret}
+  expiration: 86400000 # 24 hours
+  refresh-token:
+    expiration: 604800000 # 7 days
+
+email:
+  from: changeme@example.com
+  from-name: Bika Document Management System
+  frontend-url: http://localhost:3000
+  reset-password-expiry: 3600000 # 1 hour in milliseconds
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.bika: DEBUG

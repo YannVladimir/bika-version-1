@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
-// API Base Configuration
-const API_BASE_URL = 'http://localhost:8081/api';
+// API Base Configuration -- override via REACT_APP_API_URL in .env for
+// staging/production; defaults to the local backend for development.
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({

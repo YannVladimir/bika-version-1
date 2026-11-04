@@ -39,10 +39,10 @@ import {
   PersonAdd as ActivateIcon,
 } from "@mui/icons-material";
 import { tokens } from "../../theme/theme";
-import { InputChangeEvent, SelectChangeEvent } from "../../types/events";
+import { InputChangeEvent } from "../../types/events";
 import { userService, companyService, departmentService, User, UserRole, Company, Department, CreateUserRequest } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import { getRoleDisplayName, hasRole, hasMinimumRole } from "../../utils/roleUtils";
+import { getRoleDisplayName, hasRole } from "../../utils/roleUtils";
 
 const StyledCard = styled(Card)(({ theme }) => ({
   borderRadius: 16,
@@ -116,6 +116,8 @@ const Users: React.FC<UsersProps> = () => {
   // Load initial data
   useEffect(() => {
     loadData();
+    // loadData is redefined every render; depending on currentUser (not the function) is deliberate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const loadData = async () => {

@@ -108,6 +108,8 @@ const Departments: React.FC<DepartmentsProps> = () => {
   // Load initial data
   useEffect(() => {
     loadData();
+    // loadData is redefined every render; depending on currentUser (not the function) is deliberate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const loadData = async () => {

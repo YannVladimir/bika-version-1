@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Folder, CreateFolderRequest, ApiResponse } from './types';
+import { Folder, CreateFolderRequest } from './types';
 
 class FolderService {
   private readonly basePath = '/v1/folders';

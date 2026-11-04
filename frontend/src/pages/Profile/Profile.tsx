@@ -53,6 +53,8 @@ const Profile: React.FC<ProfileProps> = () => {
   // Load user profile on component mount
   useEffect(() => {
     loadUserProfile();
+    // Intentionally run once on mount only; loadUserProfile is redefined every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadUserProfile = async () => {

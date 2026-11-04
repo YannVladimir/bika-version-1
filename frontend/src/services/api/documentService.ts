@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { Document, CreateDocumentRequest, PhysicalStorageLookup, ApiResponse } from './types';
+import { Document, CreateDocumentRequest, PhysicalStorageLookup } from './types';
 
 class DocumentService {
   private readonly basePath = '/v1/documents';

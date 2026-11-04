@@ -78,6 +78,8 @@ const RoleDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    // fetchDashboardData is redefined every render; depending on role (not the function) is deliberate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
 
   const fetchDashboardData = async () => {
